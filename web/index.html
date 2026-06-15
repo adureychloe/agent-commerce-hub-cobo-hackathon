@@ -1,0 +1,1956 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Commerce Hub</title>
+<style>
+:root { --bg:#06080d; --panel:#0c121c; --panel2:#101a28; --line:rgba(91,255,199,.24); --text:#e8fff7; --muted:#92a5b1; --green:#5bffc7; --cyan:#65d8ff; --yellow:#ffd166; --red:#ff6b7a; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color-scheme:dark; }
+* { box-sizing:border-box }
+body { margin:0; min-height:100vh; color:var(--text); background:radial-gradient(circle at 15% 10%,rgba(91,255,199,.16),transparent 34rem),radial-gradient(circle at 90% 0,rgba(101,216,255,.12),transparent 30rem),var(--bg); }
+body:before { content:""; position:fixed; inset:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px); background-size:34px 34px; }
+.shell { width:min(1180px,calc(100% - 32px)); margin:auto; padding:26px 0 46px; position:relative; }
+header { display:flex; justify-content:space-between; gap:18px; align-items:center; padding:20px; border:1px solid var(--line); border-radius:20px; background:rgba(12,18,28,.88); box-shadow:0 20px 70px rgba(0,0,0,.35); position:sticky; top:12px; z-index:5; backdrop-filter:blur(12px); }
+.brand { display:flex; gap:14px; align-items:center; min-width:0 }
+.logo { width:50px; height:50px; border-radius:15px; display:grid; place-items:center; background:linear-gradient(135deg,var(--green),var(--cyan)); color:#00130d; font-weight:900; box-shadow:0 0 32px rgba(91,255,199,.32); }
+h1 { margin:0; font-size:clamp(1.3rem,2.5vw,2rem); letter-spacing:-.04em }
+.subtitle { color:var(--muted); margin-top:5px; font-size:.88rem }
+.statusbar { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end }
+.chip { border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:7px 10px; background:rgba(255,255,255,.04); color:var(--muted); font-size:.78rem }
+.chip.ok { color:var(--green); border-color:rgba(91,255,199,.42) } .chip.warn { color:var(--yellow); border-color:rgba(255,209,102,.38) }
+.tabs { display:flex; gap:10px; margin:22px 0; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.09) }
+.tab,.ghost { font:inherit; cursor:pointer; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted); background:rgba(255,255,255,.04); padding:10px 15px }
+.tab.active,.tab:hover,.ghost:hover { color:var(--green); border-color:rgba(91,255,199,.5); background:rgba(91,255,199,.08) }
+.grid { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr); gap:18px; align-items:start }
+.cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px }
+.card,.panel { border:1px solid rgba(255,255,255,.1); border-radius:20px; background:rgba(12,18,28,.9); box-shadow:0 18px 60px rgba(0,0,0,.3) }
+.card { min-height:230px; padding:17px; cursor:pointer; transition:.16s ease; overflow:hidden; position:relative }
+.card:hover,.card.selected { transform:translateY(-3px); border-color:rgba(91,255,199,.55); background:rgba(16,26,40,.95) }
+.card-top { display:flex; justify-content:space-between; gap:8px; color:var(--cyan); font-size:.78rem }
+.service-name { margin:14px 0 10px; font-size:1.08rem; line-height:1.25 }
+.desc { color:var(--muted); line-height:1.5; font-size:.88rem }
+.price { margin-top:18px; color:var(--green); font-weight:900 }
+.addr { margin-top:12px; color:#6f8290; overflow-wrap:anywhere; font-size:.74rem }
+.panel { padding:18px } .panel h2 { margin:0 0 8px } .panel p { color:var(--muted); line-height:1.55 }
+label { display:block; color:var(--cyan); margin:18px 0 8px; font-size:.82rem }
+textarea { width:100%; min-height:120px; resize:vertical; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.28); color:var(--text); padding:13px; font:inherit; outline:none }
+textarea:focus { border-color:rgba(91,255,199,.55); box-shadow:0 0 0 3px rgba(91,255,199,.08) }
+.actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px }
+.primary { border:0; border-radius:14px; padding:12px 16px; min-width:150px; color:#00130d; background:linear-gradient(135deg,var(--green),var(--cyan)); font:inherit; font-weight:900; cursor:pointer }
+.primary:disabled { opacity:.55; cursor:not-allowed }
+.hint,.empty { color:var(--muted); font-size:.82rem }
+.log { margin-top:16px; border:1px solid rgba(91,255,199,.18); border-radius:15px; background:rgba(0,0,0,.28); padding:12px; max-height:315px; overflow:auto }
+.log-line { display:grid; grid-template-columns:82px 1fr; gap:10px; padding:7px 0; border-bottom:1px dashed rgba(255,255,255,.07) }
+.log-line:last-child { border-bottom:0 } .time { color:#637583; font-size:.75rem } .msg { font-size:.84rem; line-height:1.45 } .good { color:var(--green) } .warn { color:var(--yellow) } .bad { color:var(--red) }
+.toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:14px }
+table { width:100%; border-collapse:collapse } th,td { text-align:left; border-bottom:1px solid rgba(255,255,255,.09); padding:12px 10px; vertical-align:top; line-height:1.45 } th { color:var(--cyan); font-size:.78rem } td { color:var(--muted); font-size:.84rem } td strong { color:var(--text) } .mono { overflow-wrap:anywhere }
+.empty { border:1px dashed rgba(255,255,255,.12); border-radius:16px; padding:22px; background:rgba(255,255,255,.025) }
+.loader { display:inline-block; width:11px; height:11px; border:2px solid rgba(91,255,199,.24); border-top-color:var(--green); border-radius:50%; animation:spin .85s linear infinite; margin-right:8px; vertical-align:-1px } @keyframes spin { to { transform:rotate(360deg) } }
+.hidden { display:none!important }
+.search-row { display:flex; gap:10px; margin-bottom:16px; align-items:center }
+.search-input { flex:1; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.28); color:var(--text); padding:12px 14px; font:inherit; outline:none; font-size:.95rem }
+.search-input:focus { border-color:rgba(91,255,199,.55); box-shadow:0 0 0 3px rgba(91,255,199,.08) }
+.search-btn { border:0; border-radius:14px; padding:12px 16px; color:#00130d; background:linear-gradient(135deg,var(--green),var(--cyan)); font:inherit; font-weight:900; cursor:pointer; white-space:nowrap }
+.search-btn:disabled { opacity:.55; cursor:not-allowed }
+.match-badge { display:inline-block; border-radius:999px; padding:2px 8px; font-size:.7rem; background:rgba(101,216,255,.15); color:var(--cyan) }
+.match-badge.high { background:rgba(91,255,199,.18); color:var(--green) }
+.registry-toggle { display:flex; gap:8px; margin-bottom:16px; align-items:center }
+.reg-btn { font:inherit; cursor:pointer; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted); background:rgba(255,255,255,.04); padding:8px 14px; font-size:.82rem }
+.reg-btn.active,.reg-btn:hover { color:var(--green); border-color:rgba(91,255,199,.5); background:rgba(91,255,199,.08) }
+.reg-badge { display:inline-block; border-radius:999px; padding:2px 9px; font-size:.7rem; font-weight:900; letter-spacing:.04em }
+.reg-badge.v1 { background:rgba(101,216,255,.18); color:var(--cyan); border:1px solid rgba(101,216,255,.4) }
+.reg-badge.v2 { background:rgba(255,209,102,.16); color:var(--yellow); border:1px solid rgba(255,209,102,.45) }
+.card.v2 { border-color:rgba(255,209,102,.32) }
+.card.v2:hover { border-color:rgba(255,209,102,.6); background:rgba(26,22,12,.95) }
+.proto-tag { display:inline-block; margin-top:10px; border-radius:8px; padding:2px 8px; font-size:.72rem; background:rgba(255,255,255,.06); color:var(--cyan) }
+.endpoint { margin-top:10px; color:#7fa0b3; overflow-wrap:anywhere; font-size:.74rem }
+.bal-chip { color:var(--green); font-size:.78rem }
+.result-panel { text-align:center; padding:10px 0 }
+.result-icon { font-size:3rem; line-height:1.2; margin-bottom:6px }
+.result-title { font-size:1.15rem; font-weight:900; margin-bottom:16px }
+.result-details { text-align:left; border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:14px; margin-bottom:14px; background:rgba(0,0,0,.15) }
+.result-row { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:.84rem; line-height:1.45 }
+.result-row:last-child { border-bottom:0 }
+.result-row .label { color:var(--cyan); white-space:nowrap }
+.result-row .value { color:var(--text); text-align:right; overflow-wrap:anywhere; max-width:65% }
+.result-row .value.good { color:var(--green) }
+.result-row .value.warn { color:var(--yellow) }
+.result-row .value.bad { color:var(--red) }
+.explorer-link { color:var(--cyan); text-decoration:underline; cursor:pointer }
+.explorer-link:hover { color:var(--green) }
+.delivery-modal { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(6,8,13,.78); backdrop-filter:blur(10px); animation:modalFade .16s ease }
+.delivery-dialog { width:min(760px,100%); max-height:min(86vh,780px); display:flex; flex-direction:column; border:1px solid rgba(91,255,199,.34); border-radius:24px; background:linear-gradient(180deg,rgba(16,26,40,.97),rgba(12,18,28,.98)); box-shadow:0 30px 100px rgba(0,0,0,.6),0 0 48px rgba(91,255,199,.12); overflow:hidden; animation:modalPop .18s ease }
+.delivery-modal-header { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; padding:22px 24px 16px; border-bottom:1px solid rgba(255,255,255,.09); background:radial-gradient(circle at 15% 0,rgba(91,255,199,.18),transparent 26rem),rgba(255,255,255,.025) }
+.delivery-eyebrow { color:var(--green); font-size:.76rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; margin-bottom:7px }
+.delivery-title { margin:0; font-size:clamp(1.2rem,2.5vw,1.65rem); letter-spacing:-.04em }
+.delivery-subtitle { color:var(--muted); margin-top:7px; font-size:.84rem; line-height:1.45 }
+.delivery-close { flex:0 0 auto; width:38px; height:38px; border-radius:13px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.05); color:var(--muted); font:inherit; font-size:1.25rem; line-height:1; cursor:pointer }
+.delivery-close:hover,.delivery-close:focus { color:var(--green); border-color:rgba(91,255,199,.45); background:rgba(91,255,199,.08); outline:none }
+.delivery-modal-body { padding:18px 24px 24px; overflow:auto }
+.delivery-summary { margin-bottom:16px; border:1px solid rgba(255,255,255,.09); border-radius:16px; background:rgba(0,0,0,.18); padding:12px 14px }
+.delivery-content-label { color:var(--cyan); font-size:.78rem; margin:0 0 10px; font-weight:900; letter-spacing:.04em }
+.delivery-content { border:1px solid rgba(91,255,199,.18); border-radius:18px; background:rgba(0,0,0,.18); padding:14px }
+@keyframes modalFade { from { opacity:0 } to { opacity:1 } }
+@keyframes modalPop { from { opacity:0; transform:translateY(10px) scale(.985) } to { opacity:1; transform:none } }
+@media (max-width:980px) { header { position:static; flex-direction:column; align-items:flex-start } .statusbar { justify-content:flex-start } .grid { grid-template-columns:1fr } .cards { grid-template-columns:1fr } .card { min-height:auto } }
+@media (max-width:620px) { .shell { width:min(100% - 20px,1180px); padding-top:10px } header,.panel { padding:14px; border-radius:16px } .toolbar { align-items:flex-start; flex-direction:column } table,thead,tbody,th,td,tr { display:block } thead { display:none } tr { border:1px solid rgba(255,255,255,.1); border-radius:14px; margin-bottom:10px; padding:6px } td { border-bottom:0; padding:7px 8px } td:before { content:attr(data-label); display:block; color:var(--cyan); font-size:.7rem } }
+</style>
+</head>
+
+  <body>
+<!-- Seller wallet connect (EIP-6963) -->
+<div id="sellerWalletModal" class="hidden" style="position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(6,8,13,.88);backdrop-filter:blur(6px)">
+  <div style="width:min(440px,calc(100% - 32px));border:1px solid rgba(255,255,255,.12);border-radius:24px;background:var(--panel);box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h2 style="margin:0;font-size:1.2rem;font-weight:700">Connect wallet</h2>
+      <button id="closeSellerModal" type="button" style="background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:4px 10px;border-radius:50%">✕</button>
+    </div>
+    <!-- Installed EIP-6963 wallets -->
+    <div id="eip6963Section" style="margin-top:10px">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;font-weight:600">Installed</div>
+      <div id="eip6963WalletList" style="display:flex;flex-direction:column;gap:2px;margin-bottom:4px">
+        <!-- Populated by JS via EIP-6963 -->
+        <div style="padding:10px;text-align:center;color:var(--muted);font-size:.82rem">Detecting wallets...</div>
+      </div>
+    </div>
+    <!-- Popular wallets -->
+    <div id="popularSection" style="margin-top:2px">
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px;font-weight:600">Popular</div>
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <button type="button" id="wcOptionBtn" class="wallet-option" data-wallet="walletconnect" style="display:flex;align-items:center;gap:14px;width:100%;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--text);font:inherit;font-size:.9rem;cursor:pointer;text-align:left">
+          <span style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="#3396FF"/><path d="M8.5 11.5C11.5 8.5 16.5 8.5 19.5 11.5L20.2 12.2C20.4 12.4 20.4 12.7 20.2 12.9L17.8 15.3C17.7 15.4 17.5 15.4 17.4 15.3L16.9 14.8C14.8 12.7 11.2 12.7 9.1 14.8L8.5 15.4C8.4 15.5 8.2 15.5 8.1 15.4L5.7 12.9C5.5 12.7 5.5 12.4 5.7 12.2L6.4 11.5H8.5Z" fill="white"/></svg></span>
+          <div style="flex:1"><div style="font-weight:600;font-size:.92rem">WalletConnect</div><div style="font-size:.74rem;color:var(--muted)">Scan with a mobile wallet</div></div>
+        </button>
+        <button type="button" id="manualOptionBtn" class="wallet-option" data-wallet="manual" style="display:flex;align-items:center;gap:14px;width:100%;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--text);font:inherit;font-size:.9rem;cursor:pointer;text-align:left">
+          <span style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.4rem">🔑</span>
+          <div style="flex:1"><div style="font-weight:600;font-size:.92rem">Enter address manually</div><div style="font-size:.74rem;color:var(--muted)">Paste your wallet address</div></div>
+        </button>
+      </div>
+    </div>
+    <!-- Manual address input -->
+    <div id="sellerManualInput" class="hidden" style="display:flex;gap:8px;padding-top:16px;margin-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+      <input id="sellerManualAddrInput" type="text" placeholder="0x..." style="flex:1;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem">
+      <button id="sellerManualConfirm" class="ghost" type="button" style="border-radius:12px;padding:10px 14px;font-size:.82rem">Connect</button>
+    </div>
+    <div id="sellerModalError" style="margin-top:12px;font-size:.78rem;color:var(--muted);line-height:1.5"></div>
+  </div>
+</div>
+<style>
+.wallet-option:hover{background:rgba(91,255,199,.06);border-color:rgba(91,255,199,.25);transform:translateY(-1px);transition:.12s ease}
+.wallet-option:active{transform:translateY(0)}
+</style>
+<main class="shell">
+<header style="position:sticky;position:-webkit-sticky">
+  <div class="brand"><div class="logo">ACH</div><div><h1>Agent Commerce Hub</h1><div class="subtitle">V2/x402 service discovery × CAW payments × delivery proofs</div></div></div>
+  <div id="statusbar" class="statusbar"><span class="chip warn"><span class="loader"></span>checking status</span></div>
+</header>
+<nav class="tabs" aria-label="Sections">
+  <button class="tab active" id="servicesTab" type="button">Discover &amp; Buy</button>
+  <button class="tab" id="agentConsoleTab" type="button">Agent Console</button>
+  <button class="tab" id="proofsTab" type="button">Proofs</button>
+  <button class="tab" id="x402Tab" type="button">Seller &amp; x402</button>
+</nav>
+<section id="buyerWalletSection" class="panel" style="margin:-6px 0 18px;border-color:rgba(91,255,199,.22);background:rgba(91,255,199,.045)">
+  <div class="toolbar" style="margin-bottom:8px">
+    <div>
+      <h2 style="margin:0 0 6px;font-size:1rem">Buyer CAW Wallet — Demo mode</h2>
+      <div class="hint">Purchases use the server-paired CAW wallet for Pact auto-pay. Approve once in CAW App; later x402 buys reuse the Pact.</div>
+    </div>
+    <div id="buyerWalletInfo" class="hidden" style="font-size:.82rem;overflow-wrap:anywhere">
+      ✅ Demo CAW selected: <strong id="buyerWalletDisplay" style="color:var(--green)"></strong>
+      <button class="ghost" id="buyerDisconnectWalletBtn" type="button" style="margin-left:6px;padding:2px 8px;font-size:.7rem">disconnect</button>
+    </div>
+  </div>
+  <div id="pairedDemoWalletRow" class="hidden" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1px solid rgba(91,255,199,.2);border-radius:12px;background:rgba(0,0,0,.16);font-size:.82rem">
+    <span class="hint">Paired demo CAW:</span>
+    <strong id="pairedDemoCawDisplay" class="mono" style="color:var(--green)"></strong>
+    <button class="ghost" id="buyerUsePairedWalletBtn" type="button" style="border-radius:12px;padding:6px 10px;font-size:.78rem;white-space:nowrap">Use paired demo CAW</button>
+  </div>
+  <div class="hint" id="buyerWalletNote" style="margin-top:8px">Loading paired CAW demo status...</div>
+  <details id="buyerManualDetails" style="margin-top:10px">
+    <summary class="hint" style="cursor:pointer;color:var(--cyan)">Advanced/manual address override</summary>
+    <div id="buyerWalletConnect" class="actions" style="margin-top:10px">
+      <label for="buyerWalletInput" style="margin:0;color:var(--cyan)">Manual CAW address</label>
+      <div style="display:flex;gap:8px;flex:1;min-width:260px">
+        <input id="buyerWalletInput" type="text" placeholder="0x... (must match paired demo CAW)" style="flex:1;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;min-width:0">
+        <button class="ghost" id="buyerUseWalletBtn" type="button" style="border-radius:12px;padding:10px 14px;font-size:.82rem;white-space:nowrap">Set manual address</button>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:8px">This demo backend can only pay from the server-paired CAW. A different address will be rejected until multi-buyer support is added.</div>
+  </details>
+  <div class="hint" style="margin-top:8px">CAW is app-based, not a browser plugin. This buyer CAW is separate from the seller browser wallet.</div>
+</section>
+<section id="servicesView">
+  <div class="search-row">
+    <input class="search-input" id="searchInput" type="text" placeholder="What do you need? e.g. &quot;write a Web3 research report&quot; or &quot;check wallet balance on-chain&quot;" autocomplete="off">
+    <button class="search-btn" id="searchBtn" type="button">Find Service</button>
+    <button class="search-btn" id="procureBtn" type="button" disabled title="Use the paired demo CAW to use Find & Pay." style="background:linear-gradient(135deg,var(--yellow),var(--green))">Find &amp; Pay</button>
+  </div>
+  <div class="registry-toggle" aria-label="Registry">
+    <span class="hint">Registry: <strong>ServiceRegistryV2 / x402</strong></span>
+  </div>
+  <div class="grid"><div>
+    <div id="serviceCards" class="cards"><div class="empty"><span class="loader"></span>Loading V2/x402 services on Sepolia...</div></div>
+  </div>
+<aside class="panel" id="paymentPanel"><h2>Discover and buy</h2><p>Choose a V2/x402 service from the marketplace or use search to auto-match. Payment uses HTTP 402 + CAW auto-pay with the server-paired demo CAW selected above.</p>
+<div id="paymentBody" class="hidden"><p id="selectedMeta"></p><p id="balanceInfo" class="bal-chip" style="margin:0 0 12px"></p><label for="intent">Request</label><textarea id="intent" placeholder="Describe what you want the provider agent to do..."></textarea><div class="actions"><button id="payButton" class="primary" type="button" disabled>Buy via x402</button><span class="hint">First x402 buy may require CAW approval; later buys can auto-execute.</span></div></div>
+<div class="log" id="log" aria-live="polite"><div class="log-line"><span class="time">ready</span><span class="msg">Terminal log initialized.</span></div></div>
+<div id="resultPanel" class="hidden" style="margin-top:14px;border:1px solid rgba(91,255,199,.2);border-radius:16px;padding:16px;background:rgba(12,18,28,.95)"><div class="result-panel"><div class="result-icon" id="resultIcon">✅</div><div class="result-title" id="resultTitle">Payment Complete</div><div class="result-details" id="resultDetails"></div><div class="actions" style="justify-content:center"><button class="ghost" id="resetResultBtn" type="button">New Procurement</button></div></div></div></aside></div></section>
+<section id="agentConsoleView" class="hidden">
+  <div class="panel" style="margin-bottom:18px;border-color:rgba(101,216,255,.2);background:rgba(101,216,255,.035)">
+    <div class="toolbar" style="margin-bottom:6px">
+      <div>
+        <h2>Agent Console</h2>
+        <p>Judge-facing control room for autonomous buyer, seller, and broker/procurement roles. The Buyer Agent calls <strong>/api/agent/buyer/procure</strong> and keeps the current V2/x402 + CAW Pact payment semantics.</p>
+      </div>
+      <span class="chip ok">V2/x402 agents</span>
+    </div>
+    <div class="hint">Use the global Buyer CAW Wallet above for auto-pay. Seller actions intentionally reuse the Seller &amp; x402 dashboard so registration, updates, removal, direct checkout, revenue, and proofs stay on the same V2/x402 path.</div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="panel" style="margin-bottom:18px">
+        <div class="toolbar" style="align-items:flex-start">
+          <div>
+            <div class="chip ok" style="display:inline-block;margin-bottom:10px">Buyer Agent</div>
+            <h2 style="margin:0 0 8px">Autonomous procurement</h2>
+            <p>Describe a task, set a SETH budget, and let the Buyer Agent discover matching ServiceRegistryV2 services, rank candidates, and optionally pay via x402 using the paired demo CAW.</p>
+          </div>
+        </div>
+        <label for="agentConsoleRequest">Procurement request</label>
+        <textarea id="agentConsoleRequest" placeholder="e.g. Find a V2/x402 seller who can produce an ETH market brief with on-chain delivery proof."></textarea>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.8fr);gap:12px;align-items:end;margin-top:12px">
+          <div>
+            <label for="agentConsoleBudget" style="margin-top:0">Budget (SETH)</label>
+            <input id="agentConsoleBudget" type="number" min="0" step="0.000001" value="0.00005" style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);padding:12px 14px;font:inherit;outline:none">
+          </div>
+          <label for="agentConsoleAutoPay" style="display:flex;gap:10px;align-items:center;margin:0;color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px;background:rgba(255,255,255,.035)">
+            <input id="agentConsoleAutoPay" type="checkbox" checked style="width:18px;height:18px;accent-color:#5bffc7">
+            <span><strong>Auto-pay via CAW</strong><br><span class="hint">Uses current V2/x402 Pact flow</span></span>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="runBuyerAgentBtn" class="primary" type="button">Run Buyer Agent</button>
+          <span id="agentConsoleWalletHint" class="hint">Auto-pay requires the selected paired demo CAW.</span>
+        </div>
+        <div id="agentConsoleResult" class="log" aria-live="polite">
+          <div class="hint">Ready. Results will show matched candidates, decision timeline, x402 payment status, and delivery proof details.</div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel" style="margin-bottom:18px">
+        <div class="chip" style="display:inline-block;margin-bottom:10px;color:var(--yellow);border-color:rgba(255,209,102,.45)">Seller Agent</div>
+        <h2 style="margin:0 0 8px">Autonomous service registration</h2>
+        <p>Describe what you want to sell. The Seller Agent builds ServiceRegistryV2/x402 metadata and calls <strong>/api/agent/seller/register</strong>.</p>
+        <label for="sellerAgentBrief">Service brief</label>
+        <textarea id="sellerAgentBrief" placeholder="e.g. Sell a concise weekly AI x Web3 market intelligence report for hackathon teams"></textarea>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:end;margin-top:12px">
+          <div><label for="sellerAgentPrice" style="margin-top:0">Price (SETH)</label><input id="sellerAgentPrice" type="number" min="0" step="0.000001" value="0.00005" style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);padding:12px 14px;font:inherit;outline:none"></div>
+          <div><label for="sellerAgentEndpoint" style="margin-top:0">Endpoint URI</label><input id="sellerAgentEndpoint" type="url" placeholder="https://seller.example.com" style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);padding:12px 14px;font:inherit;outline:none"></div>
+        </div>
+        <label for="sellerAgentAddress">Seller payment address</label>
+        <input id="sellerAgentAddress" type="text" placeholder="0x..." style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);padding:12px 14px;font:inherit;outline:none">
+        <div class="actions">
+          <button id="runSellerAgentBtn" class="primary" type="button">Run Seller Agent</button>
+          <button id="agentOpenSellerDashboardBtn" class="ghost" type="button">Open Seller Dashboard</button>
+          <button id="agentOpenRegisterBtn" class="ghost" type="button">Manual Register</button>
+        </div>
+        <div id="sellerAgentResult" class="log" aria-live="polite"><div class="hint">Ready. Seller Agent registration results will appear here.</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="chip" style="display:inline-block;margin-bottom:10px;color:var(--cyan);border-color:rgba(101,216,255,.45)">Broker / Procurement Agent</div>
+        <h2 style="margin:0 0 8px">Routing &amp; policy</h2>
+        <p>Informational role for this demo: the broker observes marketplace discovery, candidate scoring, budget policy, x402 payment requirements, and proof recording. Future UI can expose multi-seller routing while preserving the same V2/x402 procurement path.</p>
+        <div class="empty" style="padding:14px;margin-top:12px">
+          <strong style="color:var(--green)">Current semantics:</strong>
+          <div class="hint" style="margin-top:6px">Search V2 services → choose a candidate → pay through x402/CAW Pact when auto-pay is enabled → record delivery proof.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+<section id="proofsView" class="hidden"><div class="panel"><div class="toolbar"><div><h2>Delivery proofs</h2><p>Records returned by ServiceRegistry on Sepolia.</p></div><button class="ghost" id="refreshProofs" type="button">Refresh proofs</button></div><div id="proofsTable" class="empty"><span class="loader"></span>Loading proofs...</div></div></section>
+<section id="x402View" class="hidden">
+  <div class="panel" style="margin-bottom:18px">
+    <div class="toolbar">
+      <div><h2>Seller &amp; x402 Dashboard</h2><p>Seller-first tools for decentralized marketplace discovery, direct x402 checkout, revenue, and on-chain service registration.</p></div>
+      <div><span id="x402RevenueChip" class="chip">revenue: --</span></div>
+    </div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="panel" style="margin-bottom:18px">
+        <div class="toolbar"><div><h3>Available via x402</h3><span class="hint">Concise live summary; use the direct checkout selector on the right.</span></div></div>
+        <div id="x402ServiceCards"><div class="empty"><span class="loader"></span>Loading x402 availability...</div></div>
+      </div>
+      <div class="panel" style="margin-bottom:18px">
+        <div class="toolbar">
+          <div><h3>My Services</h3><span class="hint">Connect your seller wallet to manage, update, or remove your active ServiceRegistryV2/x402 services.</span></div>
+          <button class="ghost" id="refreshAdminServices" type="button">Refresh My Services</button>
+        </div>
+        <div id="sellerLifecycleWallet" style="margin:8px 0 12px;padding:10px;border:1px solid rgba(91,255,199,.18);border-radius:12px;background:rgba(91,255,199,.05);font-size:.8rem;line-height:1.45">
+          <div><strong>Seller-controlled services:</strong> connect the wallet that owns a service to update metadata or remove it from active marketplace discovery.</div>
+          <div class="actions" style="margin-top:8px"><button class="ghost" id="openSellerLifecycleWalletBtn" type="button">Connect Seller Wallet</button><span id="sellerLifecycleWalletStatus" class="hint">No seller wallet connected</span></div>
+        </div>
+        <input id="adminTokenInput" class="hidden" type="password" autocomplete="off" tabindex="-1" aria-hidden="true">
+        <label for="adminServiceSelect">My active service</label>
+        <select id="adminServiceSelect" style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);padding:12px 14px;font:inherit;outline:none"></select>
+        <div id="adminServiceEditor" class="hidden" style="border-top:1px solid rgba(255,255,255,.09);padding-top:12px;margin-top:12px">
+          <label for="adminName">Name</label>
+          <input id="adminName" type="text" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box">
+          <label for="adminDesc">Description</label>
+          <textarea id="adminDesc" style="min-height:58px;border-radius:12px;font-size:.82rem"></textarea>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <div style="flex:1"><label for="adminPrice">Price (SETH)</label><input id="adminPrice" type="text" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box"></div>
+            <div style="flex:1"><label for="adminPayment">Payment address</label><input id="adminPayment" type="text" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box"></div>
+          </div>
+          <label for="adminEndpoint">Endpoint URI</label>
+          <input id="adminEndpoint" type="text" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box">
+          <div class="actions">
+            <button class="primary" id="adminUpdateBtn" type="button">Update Service</button>
+            <button class="ghost hidden" id="adminDeactivateBtn" type="button" tabindex="-1" aria-hidden="true">Deactivate</button>
+            <button class="ghost hidden" id="adminReactivateBtn" type="button" tabindex="-1" aria-hidden="true">Reactivate</button>
+            <button class="ghost" id="sellerRemoveBtn" type="button" style="border-color:rgba(255,93,93,.55);color:var(--red)">Remove Service</button>
+          </div>
+          <div class="hint" style="margin-top:8px">Update Service changes seller-visible metadata on-chain. Remove Service takes it out of active marketplace discovery and direct checkout. Historical proofs and registry records remain auditable.</div>
+        </div>
+        <div id="adminLifecycleLog" style="margin-top:10px;font-size:.82rem;color:var(--muted);line-height:1.5"></div>
+      </div>
+      <div class="panel">
+        <div class="toolbar"><div><h3>Revenue</h3></div><button class="ghost" id="refreshRevenue" type="button">Refresh</button></div>
+        <div id="x402RevenuePanel"><p class="empty">No revenue data yet.</p></div>
+      </div>
+      <!-- ── Register Service ── -->
+      <div class="panel" style="margin-top:18px">
+        <div class="toolbar"><div><h3>Register Service</h3><span class="hint">Publish a seller service to ServiceRegistryV2</span></div>
+          <button class="ghost" id="toggleRegisterForm" type="button">＋ New</button>
+        </div>
+        <div id="registerForm" class="hidden" style="border-top:1px solid rgba(255,255,255,.09);padding-top:14px">
+          <!-- Seller wallet (universal wallet selector modal) -->
+          <div style="margin-bottom:12px;padding:10px;border:1px solid rgba(255,209,102,.3);border-radius:12px;background:rgba(255,209,102,.06)">
+            <div style="font-size:.78rem;color:var(--yellow);margin-bottom:8px">👤 Seller Wallet</div>
+            <div id="registerWalletConnected" class="hidden" style="margin-bottom:8px;font-size:.82rem;overflow-wrap:anywhere">
+              ✅ Connected: <strong id="registerWalletAddr" style="color:var(--green)"></strong>
+              <button class="ghost" id="registerDisconnectWallet" type="button" style="margin-left:6px;padding:2px 8px;font-size:.7rem">disconnect</button>
+            </div>
+            <div id="registerWalletConnectArea">
+              <button id="openWalletModalBtn" type="button" style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:var(--text);padding:12px;font:inherit;font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+                <span>🔗</span> Connect Wallet <span style="color:var(--muted);font-size:.75rem">· MetaMask · WalletConnect · more</span>
+              </button>
+            </div>
+            <div style="font-size:.72rem;color:var(--muted);margin-top:6px">💡 Seller wallet ≠ CAW buyer wallet. Use MetaMask, Rabby, or any EOA.</div>
+          </div>
+          <label for="regName">Service Name</label>
+          <input id="regName" type="text" placeholder="e.g. ETH Market Analysis" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box">
+          <label for="regDesc">Description</label>
+          <textarea id="regDesc" placeholder="Describe what your service does..." style="width:100%;min-height:60px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box"></textarea>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <div style="flex:1">
+              <label for="regPrice">Price (SETH)</label>
+              <input id="regPrice" type="text" placeholder="0.00005" value="0.00005" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box">
+            </div>
+            <div style="flex:1">
+              <label for="regEndpoint">Endpoint URI <span class="hint">(auto-filled if empty)</span></label>
+              <input id="regEndpoint" type="text" placeholder="/api/x402" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:var(--text);padding:10px 12px;font:inherit;outline:none;font-size:.82rem;box-sizing:border-box">
+            </div>
+          </div>
+          <div class="actions" style="margin-top:14px">
+            <button class="primary" id="registerServiceBtn" type="button">📝 Register on Chain</button>
+            <span class="hint">Writes to ServiceRegistryV2 on Sepolia</span>
+          </div>
+          <div id="registerLog" style="margin-top:10px;font-size:.82rem;color:var(--muted);line-height:1.5"></div>
+        </div>
+      </div>
+    </div>
+    <aside class="panel" style="position:relative">
+      <h3>Direct x402 Checkout</h3>
+      <p>Use the live x402 selector with the global demo CAW above; no service-specific wallet re-entry is needed.</p>
+      <div id="visitorWalletInfo" class="hidden" style="background:rgba(91,255,199,.08);border:1px solid rgba(91,255,199,.25);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:.82rem">
+        <span style="color:var(--green)">✅</span> Using paired demo CAW: <strong style="color:var(--green);overflow-wrap:anywhere" id="visitorWalletDisplay"></strong>
+        <button class="ghost" id="x402DisconnectWalletBtn" type="button" style="margin-left:8px;padding:2px 8px;font-size:.7rem">disconnect</button>
+      </div>
+      <div id="x402WalletPrompt" class="empty" style="margin-bottom:12px;padding:12px;font-size:.82rem">
+        Use the paired demo CAW in the global panel above for Direct x402 checkout. Purchases run through the server-paired CAW Pact; approve once in CAW App, then later buys reuse it.
+      </div>
+      <label for="x402ServiceSelect">Available x402 service</label>
+      <select id="x402ServiceSelect" style="width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.28);color:var(--text);padding:12px 14px;font:inherit;outline:none;margin-bottom:8px"></select>
+      <label for="x402Query">Your request</label>
+      <textarea id="x402Query" placeholder="e.g. ETH market analysis" style="min-height:80px"></textarea>
+
+      <!-- Buy button -->
+      <div class="actions" style="margin-top:12px">
+        <button class="primary" id="x402BuyBtn" type="button" disabled style="width:100%">
+          <span id="x402BuyBtnText">🤖 Buy with CAW</span>
+        </button>
+        <span class="hint">Server creates Pact → approve in CAW App → auto-delivers</span>
+      </div>
+
+      <div class="log" id="x402Log" aria-live="polite"><div class="log-line"><span class="time">ready</span><span class="msg">x402 ready. Use the paired demo CAW to buy.</span></div></div>
+      <div id="x402ResultPanel" class="hidden" style="margin-top:14px;border:1px solid rgba(91,255,199,.2);border-radius:16px;padding:16px;background:rgba(12,18,28,.95)"><div class="result-panel"><div class="result-icon" id="x402ResultIcon">✅</div><div class="result-title" id="x402ResultTitle">Service Delivered</div><div class="result-details" id="x402ResultDetails"></div></div></div>
+    </aside>
+  </div>
+</section>
+</main>
+<div id="deliveryModal" class="delivery-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deliveryModalTitle">
+  <div class="delivery-dialog" role="document">
+    <div class="delivery-modal-header">
+      <div>
+        <div class="delivery-eyebrow">Service delivered</div>
+        <h2 class="delivery-title" id="deliveryModalTitle">Purchase Complete</h2>
+        <div class="delivery-subtitle" id="deliveryModalSubtitle">Your paid service content is ready.</div>
+      </div>
+      <button class="delivery-close" id="deliveryModalClose" type="button" aria-label="Close delivered content">×</button>
+    </div>
+    <div class="delivery-modal-body">
+      <div class="delivery-summary" id="deliveryModalSummary"></div>
+      <div class="delivery-content-label">Delivered content</div>
+      <div class="delivery-content" id="deliveryModalContent"></div>
+    </div>
+  </div>
+</div>
+<script>
+
+const state = { services: [], proofs: [], selected: null, paying: false, waitTimer: null, pactPollTimer: null, lastPactStatus: "", balance: null, sellerServices: [], sellerServicesMeta: null };
+const el = (id) => document.getElementById(id);
+const regEndpointInput = el("regEndpoint");
+if (regEndpointInput && window.location && window.location.origin) {
+  regEndpointInput.placeholder = `${window.location.origin}/api/x402`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function short(value, head = 10, tail = 6) {
+  const text = String(value || "");
+  if (text.length <= head + tail + 3) return text;
+  return `${text.slice(0, head)}...${text.slice(-tail)}`;
+}
+function formatEth(weiValue) {
+  try {
+    const wei = BigInt(String(weiValue || 0));
+    const whole = wei / 1000000000000000000n;
+    const frac = (wei % 1000000000000000000n).toString().padStart(18, "0").replace(/0+$/, "");
+    return frac ? `${whole}.${frac.slice(0, 8)}` : String(whole);
+  } catch (err) { return String(weiValue || "0"); }
+}
+function now() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
+function log(message, kind = "") {
+  const row = document.createElement("div");
+  row.className = "log-line";
+  row.innerHTML = `<span class="time">${now()}</span><span class="msg ${kind}">${escapeHtml(message)}</span>`;
+  el("log").appendChild(row);
+  el("log").scrollTop = el("log").scrollHeight;
+}
+function resetLog() { el("log").innerHTML = ""; }
+
+function getResultTxHash(result) {
+  return (result && (result.tx_hash || (result.transfer && (result.transfer.transaction_hash || result.transfer.id)))) || "";
+}
+function getProofTxHash(result) {
+  return (result && result.proof && (result.proof.tx_hash || result.proof.txHash)) || "";
+}
+function explorerTxLink(txHash, label) {
+  if (!txHash) return "";
+  const text = label || short(txHash, 18, 10);
+  return `<a class="explorer-link" href="https://sepolia.etherscan.io/tx/${encodeURIComponent(txHash)}" target="_blank" rel="noopener">${escapeHtml(text)}</a>`;
+}
+function amountPaidLabel(result) {
+  if (!result) return "";
+  const amount = result.amount_paid || (result.payment && result.payment.amount) || "";
+  if (!amount) return "";
+  const token = result.token_id || result.token || (result.payment && (result.payment.token_id || result.payment.token)) || "SETH";
+  return `${amount} ${token}`;
+}
+function buildDeliverySummary(result, serviceName) {
+  const rows = [];
+  if (serviceName) rows.push(`<div class="result-row"><span class="label">Service</span><span class="value">${escapeHtml(serviceName)}</span></div>`);
+  const paid = amountPaidLabel(result);
+  if (paid) rows.push(`<div class="result-row"><span class="label">Amount Paid</span><span class="value good">${escapeHtml(paid)}</span></div>`);
+  const txHash = getResultTxHash(result);
+  if (txHash) rows.push(`<div class="result-row"><span class="label">Tx Hash</span><span class="value mono">${explorerTxLink(txHash)}</span></div>`);
+  const proofTx = getProofTxHash(result);
+  if (proofTx) rows.push(`<div class="result-row"><span class="label">Proof Tx</span><span class="value mono good">${explorerTxLink(proofTx)}</span></div>`);
+  return rows.join("");
+}
+function shouldOpenDeliveryModal(result) {
+  return Boolean(result && String(result.status || "").toLowerCase() === "completed" && result.content);
+}
+function openDeliveryModal(result, serviceName) {
+  if (!shouldOpenDeliveryModal(result)) return;
+  const modal = el("deliveryModal");
+  if (!modal) return;
+  const name = serviceName || result.service || "Delivered Service";
+  el("deliveryModalTitle").textContent = name;
+  const paid = amountPaidLabel(result);
+  el("deliveryModalSubtitle").textContent = paid ? `Purchase complete · ${paid} paid` : "Purchase complete · content delivered";
+  el("deliveryModalSummary").innerHTML = buildDeliverySummary(result, name) || `<div class="hint">Completed delivery</div>`;
+  el("deliveryModalContent").innerHTML = renderContent(String(result.content));
+  modal.classList.remove("hidden");
+  const closeBtn = el("deliveryModalClose");
+  if (closeBtn) closeBtn.focus({ preventScroll: true });
+}
+function closeDeliveryModal() {
+  const modal = el("deliveryModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function showResult(result, serviceName) {
+  const icon = el("resultIcon");
+  const title = el("resultTitle");
+  const details = el("resultDetails");
+
+  if (result.status === "completed") {
+    icon.textContent = "✅";
+    title.textContent = "Payment Complete";
+    title.style.color = "var(--green)";
+  } else if (result.status === "pending_approval") {
+    icon.textContent = "⏳";
+    title.textContent = "Pact Submitted — Approve in CAW App";
+    title.style.color = "var(--yellow)";
+  } else if (result.status === "failed" || result.status === "cancelled") {
+    icon.textContent = "❌";
+    title.textContent = result.error || "Payment Failed";
+    title.style.color = "var(--red)";
+  } else {
+    icon.textContent = "ℹ️";
+    title.textContent = `Status: ${result.status}`;
+    title.style.color = "var(--muted)";
+  }
+
+  const rows = [];
+  if (serviceName) rows.push(`<div class="result-row"><span class="label">Service</span><span class="value">${escapeHtml(serviceName)}</span></div>`);
+
+  const paid = amountPaidLabel(result);
+  if (paid) rows.push(`<div class="result-row"><span class="label">Amount Paid</span><span class="value good">${escapeHtml(paid)}</span></div>`);
+
+  const txHash = getResultTxHash(result);
+  if (txHash) {
+    rows.push(`<div class="result-row"><span class="label">Tx Hash</span><span class="value mono">${explorerTxLink(txHash)}</span></div>`);
+  }
+
+  const pactId = (result.pact && (result.pact.pact_id || result.pact.id || "")) || result.pact_id || "";
+  if (pactId) rows.push(`<div class="result-row"><span class="label">Pact ID</span><span class="value mono">${escapeHtml(String(pactId).slice(0, 36))}</span></div>`);
+
+  const pTx = getProofTxHash(result);
+  if (pTx) {
+    rows.push(`<div class="result-row"><span class="label">Proof Tx</span><span class="value mono good">${explorerTxLink(pTx)}</span></div>`);
+  }
+  if (result.proof_error) {
+    rows.push(`<div class="result-row"><span class="label">Proof Error</span><span class="value warn">${escapeHtml(result.proof_error)}</span></div>`);
+  }
+
+  if (result.matched_service && result.matched_service.match_score !== undefined) {
+    rows.push(`<div class="result-row"><span class="label">Match Score</span><span class="value good">${result.matched_service.match_score}</span></div>`);
+  }
+
+  let detailsHtml = rows.join("");
+  if (result.content) {
+    detailsHtml += `<div style="margin-top:14px">${renderContent(String(result.content))}</div>`;
+  }
+  details.innerHTML = detailsHtml;
+
+  // Hide payment body, show result panel
+  el("paymentBody").classList.add("hidden");
+  el("resultPanel").classList.remove("hidden");
+  openDeliveryModal(result, serviceName);
+}
+
+function resetResult() {
+  el("resultPanel").classList.add("hidden");
+  el("paymentBody").classList.remove("hidden");
+  resetLog();
+  log("Terminal reset for new procurement.", "good");
+}
+async function api(path, options = {}) {
+  const opts = { ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } };
+  const timeout = opts.timeout || 30000;
+  delete opts.timeout;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  opts.signal = controller.signal;
+  try {
+    const res = await fetch(path, opts);
+    clearTimeout(timer);
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (err) { data = text; }
+    if (!res.ok) {
+      const detail = data && data.detail ? data.detail : text || res.statusText;
+      throw new Error(detail);
+    }
+    return data;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
+function renderStatus(data) {
+  const walletClass = data.wallet_healthy ? "ok" : "warn";
+  const walletText = data.wallet_healthy ? "wallet healthy" : "wallet not healthy";
+  const walletHtml = connectedWallet
+    ? `<span id="walletChip" class="chip ok" style="cursor:pointer" title="Click to disconnect">🔗 <span id="walletAddr">${short(connectedWallet, 10, 8)}</span></span>`
+    : ``;
+  el("statusbar").innerHTML = `
+    <span class="chip ${walletClass}">${walletText}</span>
+    <span class="chip">services ${escapeHtml(data.service_count ?? 0)}</span>
+    <span class="chip">proofs ${escapeHtml(data.proof_count ?? 0)}</span>
+    <span class="chip" title="${escapeHtml(data.contract_address || "")}">contract ${escapeHtml(short(data.contract_address || "unknown"))}</span>
+    ${walletHtml}`;
+  // Re-bind wallet events
+  const walletChip = document.getElementById("walletChip");
+  if (walletChip) walletChip.addEventListener("click", disconnectWallet);
+}
+// Cache last status for re-renders (wallet connect/disconnect)
+let lastStatus = null;
+
+async function loadStatus() {
+  try {
+    lastStatus = await api("/api/status");
+    pairedCawAddress = isValidEvmAddress(lastStatus && lastStatus.paired_caw_address) ? lastStatus.paired_caw_address.trim().toLowerCase() : null;
+    if (connectedWallet && pairedCawAddress && !isPairedDemoCaw(connectedWallet)) {
+      const rejected = connectedWallet;
+      connectedWallet = null;
+      clearPersistedWallet();
+      const msg = `Saved CAW ${short(rejected, 10, 8)} does not match this server's paired demo CAW; cleared.`;
+      log(msg, "warn");
+      x402Log(msg, "warn");
+    }
+    renderStatus(lastStatus);
+    renderBuyerDemoInfo();
+    renderWalletAreas();
+  }
+  catch (err) { el("statusbar").innerHTML = `<span class="chip warn">status error: ${escapeHtml(err.message)}</span>`; }
+}
+
+function renderServices() {
+  const host = el("serviceCards");
+  if (!state.services.length) { host.innerHTML = `<div class="empty">No active V2/x402 services found on-chain.</div>`; return; }
+  host.innerHTML = state.services.slice(0, 6).map((svc) => {
+    const selected = state.selected && Number(state.selected.id) === Number(svc.id) ? " selected" : "";
+    const price = `${formatEth(svc.priceWei)} ${svc.tokenId || "SETH"}`;
+    const sellerPayment = svc.sellerPaymentAddress || svc.paymentAddress || "";
+    const sellerProvider = svc.sellerProvider || svc.provider || "";
+    return `<article class="card${selected}" tabindex="0" role="button" data-service-id="${escapeHtml(svc.id)}">
+      <div class="card-top"><span>V2/x402 #${escapeHtml(svc.id)}</span><span>${escapeHtml(svc.protocol || "x402")}</span></div>
+      <h3 class="service-name">${escapeHtml(svc.name)}</h3>
+      <div class="desc">${escapeHtml(svc.description)}</div>
+      <div class="price">${escapeHtml(price)}</div>
+      <div class="addr">seller payment ${escapeHtml(short(sellerPayment))}</div>
+      <div class="addr">provider ${escapeHtml(short(sellerProvider))}</div>
+      <div class="addr">endpoint ${escapeHtml(short(svc.endpointURI || "", 24, 10))}</div>
+    </article>`;
+  }).join("");
+  host.querySelectorAll(".card").forEach((card) => {
+    const choose = () => selectService(Number(card.dataset.serviceId));
+    card.addEventListener("click", choose);
+    card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(); } });
+  });
+}
+function selectService(id) {
+  state.selected = state.services.find((svc) => Number(svc.id) === Number(id));
+  renderServices();
+  updateBuyerPayState();
+  if (!state.selected) return;
+  const svc = state.selected;
+  el("paymentPanel").querySelector("h2").textContent = svc.name;
+  const bal = state.balance && state.balance.amount && state.balance.amount !== "unknown" ? `Balance: ${parseFloat(state.balance.amount).toFixed(6)} SETH` : "";
+  el("balanceInfo").textContent = bal;
+  const sellerPayment = svc.sellerPaymentAddress || svc.paymentAddress || "";
+  const sellerProvider = svc.sellerProvider || svc.provider || "";
+  const buyerCaw = connectedWallet || pairedCawAddress || svc.buyerPairedCawAddress || "";
+  el("selectedMeta").innerHTML = `${escapeHtml(svc.description)}<br><strong style="color:var(--green)">${escapeHtml(formatEth(svc.priceWei))} ${escapeHtml(svc.tokenId || "SETH")}</strong><br><span class="mono">seller payment: ${escapeHtml(sellerPayment)}</span><br><span class="mono">provider: ${escapeHtml(sellerProvider)}</span><br><span class="mono">buyer paired CAW: ${escapeHtml(buyerCaw || "not selected")}</span><br><span class="mono">x402 endpoint: ${escapeHtml(svc.endpointURI || "")}</span>`;
+  el("intent").value = `Purchase ${svc.name} for: `;
+  el("paymentBody").classList.remove("hidden");
+  resetLog();
+  log(`Selected service #${svc.id}: ${svc.name}`, "good");
+  updateBuyerPayState();
+}
+async function loadServices() {
+  const host = el("serviceCards");
+  host.innerHTML = `<div class="empty"><span class="loader"></span>Loading V2/x402 services on Sepolia...</div>`;
+  try {
+    state.services = await api("/api/services");
+    if (state.selected && !state.services.some((svc) => Number(svc.id) === Number(state.selected.id))) {
+      state.selected = null;
+      el("paymentBody").classList.add("hidden");
+      el("paymentPanel").querySelector("h2").textContent = "Discover and buy";
+    }
+    renderServices();
+    if (state.services.length && !state.selected) selectService(state.services[0].id);
+  } catch (err) {
+    host.innerHTML = `<div class="empty">Service discovery failed: ${escapeHtml(err.message)}</div>`;
+    log(`V2/x402 service discovery failed: ${err.message}`, "bad");
+  }
+}
+async function doSearch() {
+  const query = el("searchInput").value.trim();
+  if (!query) return;
+  el("searchBtn").disabled = true;
+  el("searchBtn").textContent = "Matching...";
+  resetLog();
+  log(`Searching for: ${query}`, "warn");
+  try {
+    const data = await api("/api/procure/match", { method: "POST", body: JSON.stringify({ request: query }) });
+    state.balance = data.balance;
+
+    // Re-sort cards by match score with badges
+    const matchSource = data.match_source || "ai";
+    const sourceBadge = matchSource === "ai" ? "🤖 AI" : "📊 Local";
+    log(`Match method: ${sourceBadge}`, "good");
+    el("serviceCards").innerHTML = data.matches.map((m) => {
+      const svc = state.services.find((s) => Number(s.id) === Number(m.id));
+      if (!svc) return "";
+      const price = `${m.price_eth} ${svc.tokenId || "SETH"}`;
+      const badgeClass = m.match_score > 1 ? "match-badge high" : "match-badge";
+      return `<article class="card selected" tabindex="0" role="button" data-service-id="${escapeHtml(m.id)}">
+        <div class="card-top"><span>service #${escapeHtml(m.id)} <span class="${badgeClass}">match ${m.match_score}</span> <span class="match-badge">${sourceBadge}</span></span><span>${escapeHtml(svc.chainId || "SETH")}</span></div>
+        <h3 class="service-name">${escapeHtml(m.name)}</h3>
+        <div class="desc">${escapeHtml(m.description)}</div>
+        <div class="price">${escapeHtml(price)} <span class="hint">(${m.price_usd})</span></div>
+        <div class="addr">seller payment ${escapeHtml(short(m.paymentAddress))}</div>
+      </article>`;
+    }).join("");
+    // Re-bind click events
+    el("serviceCards").querySelectorAll(".card").forEach((card) => {
+      const choose = () => selectService(Number(card.dataset.serviceId));
+      card.addEventListener("click", choose);
+      card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(); } });
+    });
+    // Auto-select best match
+    const bestMatch = data.matches[0];
+    if (bestMatch) {
+      selectService(bestMatch.id);
+      log(`Best match: ${bestMatch.name} (score: ${bestMatch.match_score})`, "good");
+      if (data.balance && data.balance.amount && data.balance.amount !== "unknown") {
+        log(`Wallet balance: ${parseFloat(data.balance.amount).toFixed(6)} SETH`, "good");
+      }
+    } else {
+      log("No matching services found.", "bad");
+    }
+  } catch (err) {
+    log(`Search failed: ${err.message}`, "bad");
+  } finally {
+    el("searchBtn").disabled = false;
+    el("searchBtn").textContent = "Find Service";
+  }
+}
+
+async function doProcure() {
+  const query = el("searchInput").value.trim();
+  if (!query) return;
+  if (!connectedWallet) {
+    resetLog();
+    log("Use the paired demo CAW before using Find & Pay.", "bad");
+    updateBuyerPayState();
+    return;
+  }
+  if (!validatePairedDemoWallet(connectedWallet)) return;
+  el("procureBtn").disabled = true;
+  el("searchBtn").disabled = true;
+  el("procureBtn").textContent = "Processing...";
+  resetLog();
+  log(`🚀 One-click procurement: ${query}`, "good");
+  log("Matching best service...", "warn");
+  try {
+    const result = await api("/api/procure", { method: "POST", body: JSON.stringify({ request: query, wallet_address: connectedWallet }), timeout: 360000 });
+
+    const ms = result.matched_service;
+    if (ms) {
+      log(`Matched: ${ms.name} (score: ${ms.match_score})`, "good");
+      // Select the matched service card
+      selectService(ms.id);
+    }
+
+    if (result.pact) {
+      const pid = result.pact.pact_id || result.pact.id || "";
+      log(`Pact: ${pid ? pid.slice(0,12)+"..." : "submitted"}`, "good");
+    }
+    if (result.transfer) {
+      const txh = result.tx_hash || result.transfer.transaction_hash || result.transfer.id || "";
+      log(`Transfer: ${txh.slice(0,30)}...`, "good");
+    }
+    if (result.proof) {
+      log(`Delivery proof recorded on-chain!`, "good");
+    }
+    if (result.proof_error) {
+      log(`Delivery proof error: ${result.proof_error}`, "warn");
+    }
+
+    if (result.status === "completed") {
+      log(`✅ Procurement complete!`, "good");
+    } else if (result.status === "pending_approval") {
+      log(`⏳ Pact pending — approve in CAW App`, "warn");
+    } else if (result.status === "failed") {
+      log(`❌ Failed: ${result.error || "unknown"}`, "bad");
+    }
+
+    showResult(result, ms ? ms.name : "");
+
+    await loadStatus();
+    await loadProofs();
+  } catch (err) {
+    log(`❌ Procurement failed: ${err.message}`, "bad");
+  } finally {
+    el("searchBtn").disabled = false;
+    el("procureBtn").textContent = "Find & Pay";
+    updateBuyerPayState();
+  }
+}
+
+
+function agentConsoleStatusLabel(status) {
+  const normalized = String(status || "matched").toLowerCase();
+  if (normalized === "completed" || normalized === "delivered") return { icon: "✅", text: "delivered", cls: "good" };
+  if (normalized === "matched") return { icon: "🧭", text: "matched", cls: "good" };
+  if (normalized === "pending_approval" || normalized === "pending") return { icon: "⏳", text: "pending approval", cls: "warn" };
+  if (normalized === "failed" || normalized === "cancelled") return { icon: "❌", text: normalized, cls: "bad" };
+  return { icon: "ℹ️", text: normalized || "unknown", cls: "warn" };
+}
+function agentPriceLabel(candidate) {
+  if (!candidate) return "";
+  const price = candidate.price_seth ?? candidate.price_eth;
+  if (price !== undefined && price !== null && price !== "") return `${price} SETH`;
+  if (candidate.priceWei !== undefined && candidate.priceWei !== null && candidate.priceWei !== "") return `${formatEth(candidate.priceWei)} SETH`;
+  if (candidate.price_wei !== undefined && candidate.price_wei !== null && candidate.price_wei !== "") return `${formatEth(candidate.price_wei)} SETH`;
+  return "price unknown";
+}
+function renderAgentTimeline(timeline) {
+  if (!Array.isArray(timeline) || !timeline.length) return `<div class="hint">No timeline returned.</div>`;
+  return timeline.map((item) => {
+    const step = item && (item.step || item.name || "step");
+    const status = item && (item.status || item.result || "ok");
+    const extra = Object.entries(item || {}).filter(([key]) => !["step", "name", "status", "result"].includes(key)).map(([key, value]) => `${key}: ${typeof value === "object" ? JSON.stringify(value) : value}`).join(" · ");
+    return `<div class="result-row"><span class="label">${escapeHtml(step)}</span><span class="value ${String(status).toLowerCase().includes("fail") ? "bad" : "good"}">${escapeHtml(status)}${extra ? `<br><span class="hint">${escapeHtml(extra)}</span>` : ""}</span></div>`;
+  }).join("");
+}
+function renderAgentCandidates(candidates) {
+  if (!Array.isArray(candidates) || !candidates.length) return `<div class="hint">No candidates returned.</div>`;
+  return candidates.map((candidate) => {
+    const endpoint = candidate.endpointURI || candidate.endpoint || "";
+    const protocol = candidate.protocol || "x402";
+    const score = candidate.score ?? candidate.match_score ?? "--";
+    return `<div style="border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;margin-top:8px;background:rgba(0,0,0,.14)">
+      <div style="display:flex;justify-content:space-between;gap:10px"><strong>${escapeHtml(candidate.name || `Service #${candidate.id || ""}`)}</strong><span class="match-badge">score ${escapeHtml(score)}</span></div>
+      <div class="hint" style="margin-top:5px">${escapeHtml(agentPriceLabel(candidate))} · ${escapeHtml(protocol)}</div>
+      ${endpoint ? `<div class="addr">endpoint ${escapeHtml(short(endpoint, 34, 12))}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+function renderAgentPurchaseDetails(result) {
+  const purchase = result.purchase || result.payment || result.transfer || {};
+  const rows = [];
+  const txHash = result.tx_hash || purchase.tx_hash || purchase.transaction_hash || purchase.id || getResultTxHash(result);
+  const pactId = extractPactId(result);
+  const paid = amountPaidLabel(result);
+  if (paid) rows.push(`<div class="result-row"><span class="label">Paid</span><span class="value good">${escapeHtml(paid)}</span></div>`);
+  if (txHash) rows.push(`<div class="result-row"><span class="label">Tx</span><span class="value mono">${explorerTxLink(txHash)}</span></div>`);
+  if (pactId) rows.push(`<div class="result-row"><span class="label">Pact</span><span class="value mono">${escapeHtml(short(pactId, 24, 10))}</span></div>`);
+  if (purchase.service_id) rows.push(`<div class="result-row"><span class="label">Purchased service</span><span class="value">#${escapeHtml(purchase.service_id)}</span></div>`);
+  if (result.proof) rows.push(`<div class="result-row"><span class="label">Proof</span><span class="value good">${escapeHtml(result.proof.tx_hash || result.proof.txHash || "recorded")}</span></div>`);
+  if (result.proof_error) rows.push(`<div class="result-row"><span class="label">Proof Error</span><span class="value warn">${escapeHtml(result.proof_error)}</span></div>`);
+  if (result.error) rows.push(`<div class="result-row"><span class="label">Error</span><span class="value bad">${escapeHtml(result.error)}</span></div>`);
+  return rows.join("") || `<div class="hint">No purchase details yet.</div>`;
+}
+function renderAgentResult(result) {
+  const status = agentConsoleStatusLabel(result.status);
+  const decision = result.decision || {};
+  const selected = decision.selected_service || result.matched_service || {};
+  const serviceName = decision.service_name || selected.name || result.service || "";
+  let html = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px"><strong class="${status.cls}">${status.icon} Status: ${escapeHtml(status.text)}</strong><span class="chip">Buyer Agent</span></div>`;
+  html += `<div class="result-row"><span class="label">Decision</span><span class="value">${escapeHtml(serviceName || "No service selected")}${decision.score !== undefined ? ` · score ${escapeHtml(decision.score)}` : ""}</span></div>`;
+  if (decision.reason) html += `<div class="result-row"><span class="label">Reason</span><span class="value">${escapeHtml(decision.reason)}</span></div>`;
+  if (result.budget) html += `<div class="result-row"><span class="label">Budget</span><span class="value">${escapeHtml(result.budget.requested_seth || "not set")} SETH · wallet ${escapeHtml(short(result.budget.wallet_address || connectedWallet || "not selected", 10, 8))}</span></div>`;
+  html += `<h3 style="margin:16px 0 8px;color:var(--cyan);font-size:.92rem">Candidates</h3>${renderAgentCandidates(result.candidates)}`;
+  html += `<h3 style="margin:16px 0 8px;color:var(--cyan);font-size:.92rem">Timeline</h3>${renderAgentTimeline(result.timeline)}`;
+  html += `<h3 style="margin:16px 0 8px;color:var(--cyan);font-size:.92rem">Purchase details</h3>${renderAgentPurchaseDetails(result)}`;
+  if (result.content) html += `<div style="margin-top:14px">${renderContent(String(result.content))}</div>`;
+  el("agentConsoleResult").innerHTML = html;
+  openDeliveryModal(result, serviceName);
+}
+async function runBuyerAgent() {
+  const request = el("agentConsoleRequest").value.trim();
+  const budget = el("agentConsoleBudget").value.trim();
+  const autoPay = el("agentConsoleAutoPay").checked;
+  if (!request) {
+    el("agentConsoleResult").innerHTML = `<div class="bad">Request is required.</div>`;
+    return;
+  }
+  if (!budget) {
+    el("agentConsoleResult").innerHTML = `<div class="bad">SETH budget is required.</div>`;
+    return;
+  }
+  if (Number(budget) < 0) {
+    el("agentConsoleResult").innerHTML = `<div class="bad">Budget must be non-negative.</div>`;
+    return;
+  }
+  if (autoPay && !connectedWallet) {
+    el("agentConsoleResult").innerHTML = `<div class="bad">Auto-pay requires a selected paired demo CAW. Use the Buyer CAW Wallet panel first; backend was not called.</div>`;
+    return;
+  }
+  if (autoPay && !validatePairedDemoWallet(connectedWallet)) {
+    el("agentConsoleResult").innerHTML = `<div class="bad">Auto-pay requires this server's paired demo CAW. Backend was not called.</div>`;
+    return;
+  }
+  const btn = el("runBuyerAgentBtn");
+  btn.disabled = true;
+  btn.textContent = "Running...";
+  el("agentConsoleResult").innerHTML = `<div class="hint"><span class="loader"></span>Buyer Agent is matching x402 services...</div>`;
+  try {
+    const result = await api("/api/agent/buyer/procure", {
+      method: "POST",
+      body: JSON.stringify({ request, budget_seth: budget, wallet_address: connectedWallet, auto_pay: autoPay }),
+      timeout: 400000,
+    });
+    renderAgentResult(result);
+    await loadStatus();
+    if (String(result.status || "").toLowerCase() === "completed" || String(result.status || "").toLowerCase() === "delivered") await loadProofs();
+  } catch (err) {
+    el("agentConsoleResult").innerHTML = `<div class="bad">Buyer Agent failed: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Run Buyer Agent";
+    updateBuyerPayState();
+  }
+}
+function renderSellerAgentResult(result) {
+  const service = (result && result.service) || {};
+  const registration = (result && result.registration) || {};
+  let html = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px"><strong class="good">✅ Status: ${escapeHtml((result && result.status) || "registered")}</strong><span class="chip">Seller Agent</span></div>`;
+  html += `<div class="result-row"><span class="label">Service</span><span class="value">${escapeHtml(service.name || "registered service")}</span></div>`;
+  if (service.description) html += `<div class="result-row"><span class="label">Description</span><span class="value">${escapeHtml(service.description)}</span></div>`;
+  if (service.price_seth) html += `<div class="result-row"><span class="label">Price</span><span class="value good">${escapeHtml(service.price_seth)} SETH</span></div>`;
+  if (service.payment_address) html += `<div class="result-row"><span class="label">Seller</span><span class="value mono">${escapeHtml(service.payment_address)}</span></div>`;
+  if (service.endpoint_uri) html += `<div class="result-row"><span class="label">Endpoint</span><span class="value mono">${escapeHtml(service.endpoint_uri)}</span></div>`;
+  if (registration.tx_hash) html += `<div class="result-row"><span class="label">Tx</span><span class="value mono">${explorerTxLink(registration.tx_hash)}</span></div>`;
+  if (registration.service_id || result.service_id) html += `<div class="result-row"><span class="label">Service ID</span><span class="value">#${escapeHtml(registration.service_id || result.service_id)}</span></div>`;
+  html += `<h3 style="margin:16px 0 8px;color:var(--cyan);font-size:.92rem">Timeline</h3>${renderAgentTimeline((result && result.timeline) || [])}`;
+  el("sellerAgentResult").innerHTML = html;
+}
+async function runSellerAgent() {
+  const service_brief = el("sellerAgentBrief").value.trim();
+  const price_seth = el("sellerAgentPrice").value.trim();
+  const endpoint_uri = el("sellerAgentEndpoint").value.trim();
+  const seller_address = el("sellerAgentAddress").value.trim();
+  if (!service_brief || !price_seth || !endpoint_uri || !seller_address) {
+    el("sellerAgentResult").innerHTML = `<div class="bad">Service brief, price, endpoint URI, and seller address are required.</div>`;
+    return;
+  }
+  const btn = el("runSellerAgentBtn");
+  btn.disabled = true;
+  btn.textContent = "Running...";
+  el("sellerAgentResult").innerHTML = `<div class="hint"><span class="loader"></span>Seller Agent is registering the x402 service...</div>`;
+  try {
+    const result = await api("/api/agent/seller/register", {
+      method: "POST",
+      body: JSON.stringify({ service_brief, price_seth, endpoint_uri, seller_address }),
+      timeout: 400000,
+    });
+    renderSellerAgentResult(result);
+    await loadX402Services();
+    await loadSellerServices();
+  } catch (err) {
+    el("sellerAgentResult").innerHTML = `<div class="bad">Seller Agent failed: ${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Run Seller Agent";
+  }
+}
+function openAgentSellerDashboard(openRegister = false) {
+  switchTab("x402");
+  setTimeout(() => {
+    if (openRegister && el("registerForm")) {
+      el("registerForm").classList.remove("hidden");
+      el("registerForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (el("x402View")) {
+      el("x402View").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, 0);
+}
+
+function proofRows(proofs) {
+  return proofs.map((proof) => {
+    const date = proof.timestamp ? new Date(Number(proof.timestamp) * 1000).toLocaleString() : "unknown";
+    return `<tr><td data-label="Service"><strong>#${escapeHtml(proof.serviceId)}</strong></td><td data-label="Summary">${escapeHtml(proof.summary || "")}</td><td data-label="Payment Tx" class="mono">${escapeHtml(proof.txHash || "")}</td><td data-label="Agent" class="mono">${escapeHtml(short(proof.agent || "", 12, 8))}</td><td data-label="Time">${escapeHtml(date)}</td></tr>`;
+  }).join("");
+}
+function renderProofs() {
+  const host = el("proofsTable");
+  if (!state.proofs.length) { host.className = "empty"; host.innerHTML = "No delivery proofs recorded yet."; return; }
+  host.className = "";
+  host.innerHTML = `<table><thead><tr><th>Service</th><th>Summary</th><th>Payment Tx</th><th>Agent</th><th>Time</th></tr></thead><tbody>${proofRows(state.proofs)}</tbody></table>`;
+}
+async function loadProofs() {
+  const host = el("proofsTable");
+  host.className = "empty";
+  host.innerHTML = `<span class="loader"></span>Loading proofs...`;
+  try { state.proofs = await api("/api/proofs"); renderProofs(); }
+  catch (err) { host.innerHTML = `Proof loading failed: ${escapeHtml(err.message)}`; }
+}
+
+function extractPactId(result) {
+  if (!result) return "";
+  if (result.pact_id) return result.pact_id;
+  const pact = result.pact ? result.pact : null;
+  return pact && (pact.pact_id || pact.id || pact.uuid) ? (pact.pact_id || pact.id || pact.uuid) : "";
+}
+function startWaitingHeartbeat() {
+  let ticks = 0;
+  state.waitTimer = setInterval(() => {
+    ticks += 1;
+    log(`Waiting for approval in CAW app... poll ${ticks}`, "warn");
+  }, 3000);
+}
+function stopTimers() {
+  if (state.waitTimer) clearInterval(state.waitTimer);
+  if (state.pactPollTimer) clearInterval(state.pactPollTimer);
+  state.waitTimer = null;
+  state.pactPollTimer = null;
+}
+function pollPact(pactId) {
+  if (!pactId) return;
+  state.pactPollTimer = setInterval(async () => {
+    try {
+      const info = await api(`/api/pact/${encodeURIComponent(pactId)}/status`);
+      const statusText = String(info.status || "unknown");
+      const statusLower = statusText.toLowerCase();
+      if (info.status !== state.lastPactStatus) {
+        state.lastPactStatus = info.status;
+        log(`Pact ${short(pactId)} status: ${info.status}`, statusLower === "active" ? "good" : (info.terminal ? "bad" : "warn"));
+      }
+      if (statusLower === "active") { clearInterval(state.pactPollTimer); state.pactPollTimer = null; }
+      if (info.terminal) { clearInterval(state.pactPollTimer); state.pactPollTimer = null; log(`Pact ${short(pactId)} ended as ${statusText}; stopped waiting for approval.`, "bad"); }
+    } catch (err) { log(`Pact status check failed: ${err.message}`, "bad"); }
+  }, 3000);
+}
+async function paySelected() {
+  if (!state.selected || state.paying) return;
+  state.paying = true;
+  el("payButton").disabled = true;
+  resetLog();
+  if (!connectedWallet) {
+    log("Use the paired demo CAW before buying via x402.", "bad");
+    updateBuyerPayState();
+    state.paying = false;
+    return;
+  }
+  if (!validatePairedDemoWallet(connectedWallet)) {
+    updateBuyerPayState();
+    state.paying = false;
+    return;
+  }
+  log(`x402 request submitted with paired demo CAW ${short(connectedWallet, 10, 8)}: preparing CAW auto-pay...`);
+  log("First purchase may wait for CAW App approval; approved Pact is reused for later x402 buys.", "warn");
+  startWaitingHeartbeat();
+  try {
+    const result = await api("/api/x402-buy", { method: "POST", body: JSON.stringify({ service_id: Number(state.selected.id), query: el("intent").value.trim(), wallet_address: connectedWallet }), timeout: 360000 });
+    stopTimers();
+    const pactId = extractPactId(result);
+    if (pactId) {
+      log(`Pact submitted: ${pactId}`, "good");
+      if (String(result.status).toLowerCase() === "pending_approval") pollPact(pactId);
+    }
+    if (result.error) log(result.error, result.status === "failed" ? "bad" : "warn");
+    if (result.transfer) log(`Transfer sent: ${result.tx_hash || result.transfer.transaction_hash || result.transfer.id || "submitted"}`, "good");
+    if (result.tx_hash && !result.transfer) log(`Transfer sent: ${result.tx_hash}`, "good");
+    if (result.proof) log(`Delivery recorded: proof tx ${result.proof.tx_hash || result.proof.txHash || "recorded"}`, "good");
+    if (result.proof_error) log(`Delivery proof error: ${result.proof_error}`, "warn");
+    if (result.content) log(`x402 content delivered.`, "good");
+    log(`x402 payment flow status: ${result.status}`, result.status === "completed" ? "good" : "warn");
+    showResult(result, state.selected ? state.selected.name : "");
+    await loadStatus();
+    await loadProofs();
+  } catch (err) {
+    stopTimers();
+    log(`Payment failed: ${err.message}`, "bad");
+  } finally {
+    state.paying = false;
+    updateBuyerPayState();
+  }
+}
+function renderContent(content) {
+  if (!content) return '<p class="empty">No content returned.</p>';
+  const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
+
+  // Parse header (first ╔═══ block)
+  const headerLines = [];
+  let i = 0;
+  while (i < lines.length && (lines[i].includes('╔') || lines[i].includes('║') || lines[i].includes('╚'))) {
+    const clean = lines[i].replace(/[╔╗╚╝║═]/g, '').trim();
+    if (clean) headerLines.push(clean);
+    i++;
+  }
+
+  let html = '';
+
+  // Header card
+  if (headerLines.length) {
+    const title = headerLines[0] || '';
+    const subLine = headerLines.slice(1).find(l => l.startsWith('Generated'));
+    html += `<div style="background:linear-gradient(135deg,rgba(91,255,199,.12),rgba(101,216,255,.08));border:1px solid rgba(91,255,199,.35);border-radius:14px;padding:14px 16px;margin-bottom:14px;text-align:center">
+      <div style="font-size:1.1rem;font-weight:900;color:var(--green);letter-spacing:-.02em">${escapeHtml(title)}</div>
+      ${subLine ? `<div style="font-size:.72rem;color:var(--muted);margin-top:6px">${escapeHtml(subLine.replace(/^Generated:\s*/,''))}</div>` : ''}
+    </div>`;
+  }
+
+  // Parse key-value pairs and sections
+  let sectionHtml = '';
+  let currentSection = '';
+  const rows = [];
+
+  for (const line of lines.slice(i)) {
+    if (line.startsWith('---')) continue;
+    if (line.endsWith(':') && !line.includes(' ')) {
+      currentSection = line.replace(':', '');
+      continue;
+    }
+    if (line.includes(':') && !line.startsWith('Delivered')) {
+      const sep = line.indexOf(':');
+      const label = line.slice(0, sep).trim();
+      const value = line.slice(sep + 1).trim();
+      if (label && value) {
+        rows.push({ label, value });
+        continue;
+      }
+    }
+    // Plain text line
+    rows.push({ label: '', value: line });
+  }
+
+  if (rows.length) {
+    sectionHtml = rows.map(r => {
+      const valClass =
+        r.value.startsWith('$') || r.value.includes('SETH') ? 'good' :
+        r.value.includes('x402') ? 'warn' : '';
+      return r.label
+        ? `<div class="result-row"><span class="label">${escapeHtml(r.label)}</span><span class="value ${valClass}">${escapeHtml(r.value)}</span></div>`
+        : `<div class="result-row" style="grid-template-columns:1fr"><span class="value" style="text-align:left;color:var(--muted);font-style:italic">${escapeHtml(r.value)}</span></div>`;
+    }).join('');
+  }
+
+  // Delivery footer
+  const deliveryLine = lines.find(l => l.startsWith('Delivered'));
+
+  html += `<div class="result-details">${sectionHtml}</div>`;
+  if (deliveryLine) {
+    html += `<div style="font-size:.72rem;color:var(--muted);text-align:center;border-top:1px solid rgba(255,255,255,.08);padding-top:10px">${escapeHtml(deliveryLine)}</div>`;
+  }
+
+  return html;
+}
+
+function x402Log(msg, kind = "") {
+  const row = document.createElement("div");
+  row.className = "log-line";
+  row.innerHTML = `<span class="time">${now()}</span><span class="msg ${kind}">${escapeHtml(msg)}</span>`;
+  el("x402Log").appendChild(row);
+  el("x402Log").scrollTop = el("x402Log").scrollHeight;
+}
+async function loadX402Services() {
+  const host = el("x402ServiceCards");
+  host.innerHTML = `<div class="empty"><span class="loader"></span>Loading x402 availability...</div>`;
+  const sel = el("x402ServiceSelect");
+  sel.innerHTML = `<option value="">Loading...</option>`;
+  sel.disabled = true;
+  try {
+    const data = await api("/api/x402/services");
+    const services = data.services || [];
+    if (!services.length) {
+      host.innerHTML = `<div class="empty">No active x402 services available for direct checkout.</div>`;
+      sel.innerHTML = `<option value="">No x402 services available</option>`;
+      renderWalletAreas();
+      return;
+    }
+
+    const tokens = [...new Set(services.map((s) => s.token || "SETH"))].join(", ");
+    const protocols = [...new Set(services.map((s) => s.protocol || "x402"))].join(", ");
+    const prices = services
+      .map((s) => Number.parseFloat(s.price))
+      .filter((price) => Number.isFinite(price));
+    const minPrice = prices.length ? Math.min(...prices).toFixed(6).replace(/0+$/, "").replace(/\.$/, "") : "--";
+    const maxPrice = prices.length ? Math.max(...prices).toFixed(6).replace(/0+$/, "").replace(/\.$/, "") : "--";
+    const priceLabel = minPrice === maxPrice ? minPrice : `${minPrice}–${maxPrice}`;
+    const first = services[0];
+
+    host.innerHTML = `<div class="result-details" style="margin-bottom:0">
+      <div class="result-row"><span class="label">Available</span><span class="value good">${escapeHtml(services.length)} service${services.length === 1 ? "" : "s"}</span></div>
+      <div class="result-row"><span class="label">Protocol</span><span class="value">${escapeHtml(protocols)}</span></div>
+      <div class="result-row"><span class="label">Token</span><span class="value">${escapeHtml(tokens)}</span></div>
+      <div class="result-row"><span class="label">Price range</span><span class="value good">${escapeHtml(priceLabel)} ${escapeHtml(tokens)}</span></div>
+      <div class="result-row"><span class="label">Buyer CAW</span><span class="value mono">${escapeHtml(connectedWallet || pairedCawAddress || "select paired demo CAW")}</span></div>
+      <div class="result-row"><span class="label">Checkout</span><span class="value">Select a seller service on the right; payments go to that service's payment address.</span></div>
+      <div class="result-row"><span class="label">Default</span><span class="value">#${escapeHtml(first.id)} ${escapeHtml(first.name)} · seller payment ${escapeHtml(short(first.address))} · provider ${escapeHtml(short(first.provider))}</span></div>
+    </div>`;
+    sel.disabled = false;
+    sel.innerHTML = services.map((s) => `<option value="${escapeHtml(s.id)}">[${s.id}] ${escapeHtml(s.name)} — ${escapeHtml(s.price)} ${escapeHtml(s.token)} — seller ${escapeHtml(short(s.address))}</option>`).join("");
+    renderWalletAreas();
+  } catch (err) {
+    host.innerHTML = `<div class="empty">x402 availability failed: ${escapeHtml(err.message)}</div>`;
+    sel.innerHTML = `<option value="">Failed to load services</option>`;
+    renderWalletAreas();
+  }
+}
+async function loadX402Revenue() {
+  try {
+    const data = await api("/api/x402/revenue");
+    const total = parseFloat(data.total_seth || 0).toFixed(6);
+    el("x402RevenueChip").textContent = `revenue: ${total} SETH (${data.total_usd || "$0"})`;
+    if (data.tx_count > 0) el("x402RevenueChip").classList.add("ok");
+    const panel = el("x402RevenuePanel");
+    if (data.tx_count === 0) { panel.innerHTML = `<p class="empty">No revenue yet. Completed x402 purchases will appear here.</p>`; return; }
+    let rows = `<div class="log" style="max-height:250px">`;
+    rows += `<div class="log-line"><span class="time">total</span><span class="msg good"><strong>${data.total_seth} SETH (${data.total_usd})</strong> — ${data.tx_count} tx(s)</span></div>`;
+    for (const [sid, svc] of Object.entries(data.by_service || {})) {
+      rows += `<div class="log-line"><span class="time">#${sid}</span><span class="msg">${escapeHtml(svc.name)}: ${svc.earned_seth} SETH</span></div>`;
+    }
+    rows += `</div>`;
+    panel.innerHTML = rows;
+  } catch (err) {
+    el("x402RevenueChip").textContent = "revenue: error";
+  }
+}
+function adminHeaders() {
+  return {};
+}
+function currentSellerAddress() {
+  return registerWallet ? String(registerWallet).toLowerCase() : "";
+}
+function normalizeEvmAddress(addr) {
+  const value = String(addr || "").trim();
+  return /^0x[a-fA-F0-9]{40}$/.test(value) ? value.toLowerCase() : "";
+}
+function serverProviderAddress() {
+  return normalizeEvmAddress((lastStatus && (lastStatus.x402_provider || lastStatus.provider)) || "");
+}
+function serviceProviderIsServerOwner(svc) {
+  const provider = normalizeEvmAddress((svc && svc.provider) || "");
+  const serverProvider = serverProviderAddress();
+  return Boolean(provider && serverProvider && provider === serverProvider);
+}
+function sellerOwnsService(svc) {
+  const seller = currentSellerAddress();
+  if (!seller || !svc || !serviceProviderIsServerOwner(svc)) return false;
+  const payment = normalizeEvmAddress(svc.payment_address || svc.address || "");
+  const provider = normalizeEvmAddress(svc.provider || "");
+  return Boolean((payment && payment === seller) || (provider && provider === seller));
+}
+function sellerCanSelfServiceManage(svc) {
+  return Boolean(svc && svc.active && serviceProviderIsServerOwner(svc) && sellerOwnsService(svc));
+}
+function renderSellerLifecycleWallet() {
+  const status = el("sellerLifecycleWalletStatus");
+  if (!status) return;
+  status.textContent = currentSellerAddress() ? `Connected seller: ${short(currentSellerAddress(), 10, 8)}` : "No seller wallet connected";
+  const btn = el("openSellerLifecycleWalletBtn");
+  if (btn) btn.textContent = currentSellerAddress() ? "Change Seller Wallet" : "Connect Seller Wallet";
+}
+function lifecycleLog(msg, kind = "") {
+  const color = kind === "bad" ? "red" : kind === "good" ? "green" : kind === "warn" ? "yellow" : "muted";
+  el("adminLifecycleLog").innerHTML = `<span style="color:var(--${color})">${escapeHtml(msg)}</span>`;
+}
+function sellerServiceById(id) {
+  return state.sellerServices.find((s) => Number(s.id) === Number(id));
+}
+function renderSellerServices() {
+  const sel = el("adminServiceSelect");
+  if (!state.sellerServices.length) {
+    sel.innerHTML = `<option value="">No services loaded</option>`;
+    el("adminServiceEditor").classList.add("hidden");
+    return;
+  }
+  sel.innerHTML = state.sellerServices.map((s) => `<option value="${escapeHtml(s.id)}">[${escapeHtml(s.id)}] ${escapeHtml(s.name)} — ${s.active ? "active" : "inactive"}</option>`).join("");
+  populateAdminEditor();
+}
+function populateAdminEditor() {
+  const svc = sellerServiceById(el("adminServiceSelect").value);
+  if (!svc) { el("adminServiceEditor").classList.add("hidden"); return; }
+  el("adminName").value = svc.name || "";
+  el("adminDesc").value = svc.description || "";
+  el("adminPrice").value = svc.price_seth || svc.price || "";
+  el("adminPayment").value = svc.payment_address || svc.address || "";
+  el("adminEndpoint").value = svc.endpoint_uri || svc.endpoint || "";
+  el("adminDeactivateBtn").disabled = !svc.active;
+  el("adminReactivateBtn").disabled = !!svc.active;
+  const serverOwnedProvider = serviceProviderIsServerOwner(svc);
+  const ownsService = sellerOwnsService(svc);
+  const canSelfServiceManage = sellerCanSelfServiceManage(svc);
+  const updateBtn = el("adminUpdateBtn");
+  if (updateBtn) {
+    updateBtn.disabled = !canSelfServiceManage;
+    updateBtn.title = !svc.active
+      ? "Service is inactive; removed services cannot be updated here"
+      : (!serverOwnedProvider
+        ? "Self-service update is available only when the on-chain provider is this server owner"
+        : (ownsService ? "Update this server-owned-provider service metadata" : "Connect this service's payment wallet (or server provider wallet) to update"));
+  }
+  const removeBtn = el("sellerRemoveBtn");
+  if (removeBtn) {
+    removeBtn.disabled = !canSelfServiceManage;
+    removeBtn.title = !svc.active
+      ? "Service is already inactive"
+      : (!serverOwnedProvider
+        ? "Self-service remove is available only when the on-chain provider is this server owner"
+        : (ownsService ? "Remove this server-owned-provider service from buyer discovery" : "Connect this service's payment wallet (or server provider wallet) to remove"));
+  }
+  renderSellerLifecycleWallet();
+  el("adminServiceEditor").classList.remove("hidden");
+}
+async function loadSellerServices() {
+  const sel = el("adminServiceSelect");
+  if (!sel) return;
+  sel.innerHTML = `<option value="">Loading...</option>`;
+  const seller = currentSellerAddress();
+  if (!seller) {
+    state.sellerServices = [];
+    state.sellerServicesMeta = null;
+    sel.innerHTML = `<option value="">Connect Seller Wallet to load your services</option>`;
+    el("adminServiceEditor").classList.add("hidden");
+    renderSellerLifecycleWallet();
+    lifecycleLog("Connect your seller wallet to load your own active services. No marketplace admin role is needed.", "warn");
+    return;
+  }
+  lifecycleLog("Loading your active seller-owned ServiceRegistryV2 services...", "warn");
+  try {
+    const data = await api(`/api/x402/seller/services_v2?seller_address=${encodeURIComponent(seller)}`);
+    state.sellerServicesMeta = { chain_id: data.chain_id, contract_address: data.contract_address };
+    if (data.x402_provider) {
+      if (!lastStatus) lastStatus = {};
+      lastStatus.x402_provider = data.x402_provider;
+    }
+    const services = data.services || [];
+    state.sellerServices = services.filter((s) => s.active);
+    renderSellerServices();
+    lifecycleLog(`Loaded ${state.sellerServices.length} active seller-owned service${state.sellerServices.length === 1 ? "" : "s"}.`, "good");
+  } catch (err) {
+    state.sellerServices = [];
+    state.sellerServicesMeta = null;
+    sel.innerHTML = `<option value="">Service load failed</option>`;
+    el("adminServiceEditor").classList.add("hidden");
+    lifecycleLog(`Service lifecycle load failed: ${err.message}`, "bad");
+  }
+}
+async function updateAdminService() {
+  const serviceId = Number(el("adminServiceSelect").value);
+  const svc = sellerServiceById(serviceId);
+  if (!svc) { lifecycleLog("Select a service first.", "bad"); return; }
+  if (!currentSellerAddress()) { lifecycleLog("Connect the seller wallet first.", "bad"); return; }
+  if (!serviceProviderIsServerOwner(svc)) { lifecycleLog("Self-service update is available only when the on-chain provider is this server owner. External provider wallets must update directly on-chain.", "bad"); return; }
+  if (!sellerOwnsService(svc)) { lifecycleLog("Connected seller wallet is not authorized for this server-owned-provider service (connect its payment wallet or the server provider wallet).", "bad"); return; }
+  if (!svc.active) { lifecycleLog("Service is inactive; removed services cannot be updated here.", "bad"); return; }
+  const btn = el("adminUpdateBtn");
+  btn.disabled = true;
+  try {
+    const update = {
+      name: el("adminName").value.trim(),
+      description: el("adminDesc").value.trim(),
+      price_seth: el("adminPrice").value.trim(),
+      payment_address: el("adminPayment").value.trim(),
+      endpoint_uri: el("adminEndpoint").value.trim(),
+    };
+    const canonicalPayment = normalizeEvmAddress(update.payment_address);
+    if (!canonicalPayment) throw new Error("Payment address is required for seller update.");
+    update.payment_address = canonicalPayment;
+    lifecycleLog("Requesting seller wallet signature for metadata update...", "warn");
+    const message = buildSellerUpdateMessage(serviceId, update);
+    const signature = await signSellerMessage(sellerWalletProvider, message, "update");
+    lifecycleLog("Submitting seller metadata update on-chain...", "warn");
+    const result = await api("/api/x402/seller/update_v2", {
+      method: "POST",
+      body: JSON.stringify({ service_id: serviceId, seller_address: currentSellerAddress(), message, signature, ...update }),
+      timeout: 240000,
+    });
+    lifecycleLog(`✅ Updated service #${serviceId} — tx ${short(result.tx_hash || "", 10, 8)}`, "good");
+    await loadSellerServices(); await loadX402Services(); await loadServices(); await loadStatus();
+  } catch (err) {
+    lifecycleLog(`❌ Update failed: ${err.message}`, "bad");
+  } finally { populateAdminEditor(); }
+}
+async function setAdminServiceActive(active) {
+  const serviceId = Number(el("adminServiceSelect").value);
+  if (!serviceId) { lifecycleLog("Select a service first.", "bad"); return; }
+  const endpoint = active ? "/api/x402/reactivate_v2" : "/api/x402/deactivate_v2";
+  const btn = active ? el("adminReactivateBtn") : el("adminDeactivateBtn");
+  btn.disabled = true;
+  lifecycleLog(`${active ? "Reactivating" : "Deactivating"} service #${serviceId} on-chain...`, "warn");
+  try {
+    const result = await api(endpoint, {
+      method: "POST",
+      headers: adminHeaders(),
+      body: JSON.stringify({ service_id: serviceId }),
+      timeout: 240000,
+    });
+    lifecycleLog(`✅ Service #${serviceId} ${active ? "reactivated" : "deactivated"} — tx ${short(result.tx_hash || "", 10, 8)}`, "good");
+    await refreshAfterLifecycleChange(serviceId);
+  } catch (err) {
+    lifecycleLog(`❌ Lifecycle change failed: ${err.message}`, "bad");
+  } finally { btn.disabled = false; }
+}
+async function refreshAfterLifecycleChange(changedServiceId = null) {
+  if (changedServiceId && state.selected && Number(state.selected.id) === Number(changedServiceId)) {
+    state.selected = null;
+    el("paymentBody").classList.add("hidden");
+    el("paymentPanel").querySelector("h2").textContent = "Discover and buy";
+  }
+  await loadSellerServices();
+  await loadX402Services();
+  await loadServices();
+  await loadStatus();
+  updateBuyerPayState();
+}
+
+function sellerRemoveContractAddress() {
+  return (state.sellerServicesMeta && state.sellerServicesMeta.contract_address) || (lastStatus && (lastStatus.v2_contract_address || lastStatus.contract_address)) || "";
+}
+function sellerRemoveChainId() {
+  return String((state.sellerServicesMeta && state.sellerServicesMeta.chain_id) || (lastStatus && (lastStatus.v2_chain_id || lastStatus.chain_id)) || "11155111");
+}
+function buildSellerActionMessage(action, serviceId, extra = {}) {
+  const contractAddress = sellerRemoveContractAddress();
+  if (!contractAddress) throw new Error("Registry contract address is not loaded yet; refresh status and try again.");
+  return JSON.stringify({
+    action,
+    service_id: Number(serviceId),
+    seller_address: currentSellerAddress(),
+    chain_id: sellerRemoveChainId(),
+    contract_address: contractAddress,
+    origin: window.location.origin,
+    ...extra,
+    expires_at: Math.floor(Date.now() / 1000) + 300,
+  });
+}
+function buildSellerRemoveMessage(serviceId) {
+  return buildSellerActionMessage("remove_v2", serviceId);
+}
+function buildSellerUpdateMessage(serviceId, update) {
+  return buildSellerActionMessage("update_v2", serviceId, {
+    name: update.name,
+    description: update.description,
+    price_seth: update.price_seth,
+    payment_address: update.payment_address,
+    endpoint_uri: update.endpoint_uri,
+  });
+}
+function promptManualSellerSignature(message) {
+  return window.prompt(`No browser wallet signer is available for this seller address.\n\nIf you own ${currentSellerAddress()}, sign this exact JSON message with your wallet and paste the signature here:\n\n${message}`, "") || "";
+}
+async function signSellerMessage(provider, message, actionLabel = "action") {
+  if (!provider) {
+    const manualSig = promptManualSellerSignature(message).trim();
+    if (!manualSig) throw new Error(`Seller signature is required for self-service ${actionLabel}.`);
+    return manualSig;
+  }
+  const accounts = await provider.request({ method: "eth_requestAccounts" });
+  const account = accounts && accounts[0] ? accounts[0].toLowerCase() : "";
+  if (!account || account !== currentSellerAddress()) throw new Error("Browser wallet account does not match the connected seller wallet.");
+  return provider.request({ method: "personal_sign", params: [message, account] });
+}
+async function signSellerRemoveMessage(provider, message) {
+  return signSellerMessage(provider, message, "remove");
+}
+async function sellerRemoveSelectedService() {
+  const serviceId = Number(el("adminServiceSelect").value);
+  const svc = sellerServiceById(serviceId);
+  if (!svc) { lifecycleLog("Select a service first.", "bad"); return; }
+  if (!currentSellerAddress()) { lifecycleLog("Connect the seller wallet first.", "bad"); return; }
+  if (!serviceProviderIsServerOwner(svc)) { lifecycleLog("Self-service remove is available only when the on-chain provider is this server owner. External provider wallets must remove directly on-chain.", "bad"); return; }
+  if (!sellerOwnsService(svc)) { lifecycleLog("Connected seller wallet is not authorized for this server-owned-provider service (connect its payment wallet or the server provider wallet).", "bad"); return; }
+  if (!svc.active) { lifecycleLog("Service is already inactive.", "bad"); return; }
+  const warning = `Remove service #${serviceId} (${svc.name}) from buyer discovery?\n\nThis uses ServiceRegistryV2.deactivate(), so buyers will no longer see or buy it. Historical on-chain records remain.`;
+  if (!window.confirm(warning)) return;
+
+  const btn = el("sellerRemoveBtn");
+  btn.disabled = true;
+  lifecycleLog("Requesting seller wallet signature for self-service remove...", "warn");
+  try {
+    const message = buildSellerRemoveMessage(serviceId);
+    const signature = await signSellerRemoveMessage(sellerWalletProvider, message);
+    lifecycleLog("Submitting seller remove/deactivate on-chain...", "warn");
+    const result = await api("/api/x402/seller/remove_v2", {
+      method: "POST",
+      body: JSON.stringify({ service_id: serviceId, seller_address: currentSellerAddress(), message, signature }),
+      timeout: 240000,
+    });
+    lifecycleLog(`✅ Seller removed service #${serviceId} from buyer discovery — tx ${short(result.tx_hash || "", 10, 8)}`, "good");
+    await refreshAfterLifecycleChange(serviceId);
+  } catch (err) {
+    lifecycleLog(`❌ Seller remove failed: ${err.message}`, "bad");
+  } finally { populateAdminEditor(); }
+}
+
+function switchTab(name) {
+  const isServices = name === "services";
+  const isAgentConsole = name === "agentConsole";
+  const isProofs = name === "proofs";
+  const isX402 = name === "x402";
+  el("servicesView").classList.toggle("hidden", !isServices);
+  el("agentConsoleView").classList.toggle("hidden", !isAgentConsole);
+  el("proofsView").classList.toggle("hidden", !isProofs);
+  el("x402View").classList.toggle("hidden", !isX402);
+  el("servicesTab").classList.toggle("active", isServices);
+  el("agentConsoleTab").classList.toggle("active", isAgentConsole);
+  el("proofsTab").classList.toggle("active", isProofs);
+  el("x402Tab").classList.toggle("active", isX402);
+  if (isProofs) loadProofs();
+  if (isX402) { loadX402Services(); loadSellerServices(); loadX402Revenue(); }
+}
+el("servicesTab").addEventListener("click", () => switchTab("services"));
+el("agentConsoleTab").addEventListener("click", () => switchTab("agentConsole"));
+el("proofsTab").addEventListener("click", () => switchTab("proofs"));
+el("x402Tab").addEventListener("click", () => switchTab("x402"));
+el("refreshProofs").addEventListener("click", loadProofs);
+el("refreshRevenue").addEventListener("click", loadX402Revenue);
+el("refreshAdminServices").addEventListener("click", loadSellerServices);
+el("openSellerLifecycleWalletBtn").addEventListener("click", function() { showSellerModal(); scanEIP6963Wallets(); });
+el("payButton").addEventListener("click", paySelected);
+el("searchBtn").addEventListener("click", doSearch);
+el("procureBtn").addEventListener("click", doProcure);
+el("runBuyerAgentBtn").addEventListener("click", runBuyerAgent);
+el("runSellerAgentBtn").addEventListener("click", runSellerAgent);
+el("agentOpenSellerDashboardBtn").addEventListener("click", () => openAgentSellerDashboard(false));
+el("agentOpenRegisterBtn").addEventListener("click", () => openAgentSellerDashboard(true));
+el("searchInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); doSearch(); } });
+el("resetResultBtn").addEventListener("click", resetResult);
+el("deliveryModalClose").addEventListener("click", closeDeliveryModal);
+el("deliveryModal").addEventListener("click", (event) => { if (event.target === el("deliveryModal")) closeDeliveryModal(); });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !el("deliveryModal").classList.contains("hidden")) closeDeliveryModal();
+});
+// ── Wallet Connection ──────────────────────────────
+let connectedWallet = null;
+let pairedCawAddress = null;
+const BUYER_CAW_STORAGE_KEY = "agentCommerceBuyerCAWAddress";
+
+function isValidEvmAddress(addr) {
+  return /^0x[a-fA-F0-9]{40}$/.test(String(addr || "").trim());
+}
+
+function isPairedDemoCaw(addr) {
+  return Boolean(pairedCawAddress && addr && String(addr).trim().toLowerCase() === pairedCawAddress);
+}
+
+function pairedDemoRequiredMessage(addr) {
+  const paired = pairedCawAddress ? short(pairedCawAddress, 10, 8) : "the paired demo CAW shown above";
+  const got = addr ? ` You entered ${short(addr, 10, 8)}.` : "";
+  return `This demo backend only supports the server-paired CAW (${paired}) for Pact auto-pay.${got} Use \"Use paired demo CAW\" or enter that exact address.`;
+}
+
+function renderBuyerDemoInfo() {
+  if (el("buyerWalletNote")) {
+    el("buyerWalletNote").textContent = (lastStatus && lastStatus.buyer_wallet_note) || "Demo mode: purchases use the server-paired CAW for Pact auto-pay. Approve once in CAW App; later x402 buys reuse the Pact.";
+  }
+  if (el("pairedDemoWalletRow")) el("pairedDemoWalletRow").classList.toggle("hidden", !pairedCawAddress);
+  if (pairedCawAddress && el("pairedDemoCawDisplay")) el("pairedDemoCawDisplay").textContent = `${short(pairedCawAddress, 12, 10)} (${pairedCawAddress})`;
+}
+
+function setPairedDemoWallet() {
+  if (!pairedCawAddress) {
+    const msg = "Paired demo CAW address is not loaded yet. Wait for status to finish loading.";
+    log(msg, "bad");
+    x402Log(msg, "bad");
+    return;
+  }
+  connectedWallet = pairedCawAddress;
+  persistConnectedWallet();
+  if (el("buyerWalletInput")) el("buyerWalletInput").value = pairedCawAddress;
+  renderStatus(lastStatus || {});
+  renderWalletAreas();
+  const msg = `✅ Using paired demo CAW: ${short(pairedCawAddress, 10, 8)}`;
+  log(msg, "good");
+  x402Log(msg, "good");
+}
+
+function validatePairedDemoWallet(addr) {
+  if (!pairedCawAddress) return true;
+  if (isPairedDemoCaw(addr)) return true;
+  const msg = pairedDemoRequiredMessage(addr);
+  log(msg, "bad");
+  x402Log(msg, "bad");
+  return false;
+}
+
+function updateBuyerPayState() {
+  const hasWallet = Boolean(connectedWallet);
+  const hasService = Boolean(state.selected);
+  if (el("payButton")) el("payButton").disabled = state.paying || !hasService || !hasWallet;
+  if (el("procureBtn")) {
+    el("procureBtn").disabled = !hasWallet;
+    el("procureBtn").title = hasWallet ? `Find and Pay with paired demo CAW ${short(connectedWallet, 10, 8)}` : "Use the paired demo CAW to use Find & Pay.";
+  }
+}
+
+function renderWalletAreas() {
+  const hasWallet = Boolean(connectedWallet);
+  if (el("buyerWalletConnect")) el("buyerWalletConnect").classList.toggle("hidden", hasWallet);
+  if (el("buyerManualDetails") && hasWallet) el("buyerManualDetails").open = false;
+  if (el("buyerWalletInfo")) el("buyerWalletInfo").classList.toggle("hidden", !hasWallet);
+  if (hasWallet && el("buyerWalletDisplay")) el("buyerWalletDisplay").textContent = short(connectedWallet, 10, 8);
+
+  if (el("visitorWalletInfo")) el("visitorWalletInfo").classList.toggle("hidden", !hasWallet);
+  if (el("x402WalletPrompt")) el("x402WalletPrompt").classList.toggle("hidden", hasWallet);
+  if (hasWallet && el("visitorWalletDisplay")) el("visitorWalletDisplay").textContent = short(connectedWallet, 10, 8);
+
+  if (el("x402BuyBtn")) el("x402BuyBtn").disabled = !hasWallet || !el("x402ServiceSelect").value;
+  if (el("agentConsoleWalletHint")) el("agentConsoleWalletHint").textContent = hasWallet ? `Using paired demo CAW ${short(connectedWallet, 10, 8)} for Agent Console auto-pay.` : "Auto-pay requires the selected paired demo CAW.";
+  updateBuyerPayState();
+}
+
+function persistConnectedWallet() {
+  if (!connectedWallet) return;
+  try { localStorage.setItem(BUYER_CAW_STORAGE_KEY, connectedWallet); } catch (_) {}
+}
+
+function clearPersistedWallet() {
+  try { localStorage.removeItem(BUYER_CAW_STORAGE_KEY); } catch (_) {}
+}
+
+function restoreConnectedWallet() {
+  try {
+    const saved = localStorage.getItem(BUYER_CAW_STORAGE_KEY);
+    if (isValidEvmAddress(saved)) {
+      const normalized = saved.trim().toLowerCase();
+      if (!pairedCawAddress || normalized === pairedCawAddress) connectedWallet = normalized;
+      else localStorage.removeItem(BUYER_CAW_STORAGE_KEY);
+    }
+    else if (saved) localStorage.removeItem(BUYER_CAW_STORAGE_KEY);
+  } catch (_) {}
+}
+
+function disconnectWallet() {
+  connectedWallet = null;
+  clearPersistedWallet();
+  renderStatus(lastStatus || {});
+  renderWalletAreas();
+  x402Log("CAW wallet address disconnected.", "warn");
+}
+
+// Use CAW wallet by address (CAW is app-based, not a browser plugin)
+function connectCAWWallet(sourceId = "buyerWalletInput") {
+  const input = el(sourceId);
+  const addr = input ? input.value.trim().toLowerCase() : "";
+  if (!isValidEvmAddress(addr)) {
+    const msg = "Please enter a valid CAW EVM address starting with 0x.";
+    log(msg, "bad");
+    x402Log(msg, "bad");
+    return;
+  }
+  if (!validatePairedDemoWallet(addr)) return;
+  connectedWallet = addr;
+  persistConnectedWallet();
+  if (el("buyerWalletInput")) el("buyerWalletInput").value = "";
+  renderStatus(lastStatus || {});
+  renderWalletAreas();
+  const msg = `✅ Paired demo CAW set: ${short(addr, 10, 8)}`;
+  log(msg, "good");
+  x402Log(msg, "good");
+}
+
+el("buyerUseWalletBtn").addEventListener("click", () => connectCAWWallet("buyerWalletInput"));
+el("buyerUsePairedWalletBtn").addEventListener("click", setPairedDemoWallet);
+el("buyerWalletInput").addEventListener("keydown", (e) => { if (e.key === "Enter") connectCAWWallet("buyerWalletInput"); });
+el("buyerDisconnectWalletBtn").addEventListener("click", disconnectWallet);
+el("x402DisconnectWalletBtn").addEventListener("click", disconnectWallet);
+el("x402ServiceSelect").addEventListener("change", renderWalletAreas);
+
+// ── Updated x402 Buy Flow (CAW Pact auto-pay) ─────────
+async function x402Buy() {
+  const sel = el("x402ServiceSelect");
+  const serviceId = parseInt(sel.value);
+  const query = el("x402Query").value.trim();
+  if (!serviceId) { x402Log("Please select a service.", "bad"); return; }
+  if (!connectedWallet) { x402Log("Use the paired demo CAW first.", "bad"); return; }
+  if (!validatePairedDemoWallet(connectedWallet)) return;
+  el("x402BuyBtn").disabled = true;
+  el("x402BuyBtnText").innerHTML = '<span class="loader"></span> Buying...';
+  el("x402Log").innerHTML = "";
+  x402Log(`🔗 Paired demo CAW: ${short(connectedWallet, 10, 8)}`, "good");
+  x402Log(`🤖 Buying service #${serviceId} via server-paired CAW auto-pay...`, "good");
+  x402Log(`⏳ Creating or reusing Pact...`, "warn");
+  try {
+    const result = await api("/api/x402-buy", {
+      method: "POST",
+      body: JSON.stringify({ service_id: serviceId, query, wallet_address: connectedWallet }),
+      timeout: 400000,  // allow up to 400s for CAW approval + transfer
+    });
+    const status = String(result.status || "").toLowerCase();
+    const content = result.content || "";
+    if (status === "completed") {
+      x402Log("✅ Payment complete — content delivered!", "good");
+    } else if (status === "pending_approval") {
+      const pactId = extractPactId(result);
+      x402Log("⏳ Pact submitted — approve once in CAW App; later buys reuse it.", "warn");
+      if (pactId) pollPact(pactId);
+    } else if (status === "failed" || status === "cancelled") {
+      x402Log(`❌ Auto-pay failed: ${result.error || "purchase cancelled"}`, "bad");
+    } else {
+      x402Log(`ℹ️ x402 flow status: ${result.status || "unknown"}`, "warn");
+    }
+    if (result.error && status !== "failed" && status !== "cancelled") x402Log(result.error, "warn");
+    if (result.tx_hash) x402Log(`Tx: ${result.tx_hash.slice(0,42)}...`, "good");
+    if (result.amount_paid) x402Log(`Paid: ${result.amount_paid}`, "good");
+    if (result.proof) x402Log(`Delivery proof recorded: ${result.proof.tx_hash || result.proof.txHash || "recorded"}`, "good");
+    if (result.proof_error) x402Log(`Delivery proof error: ${result.proof_error}`, "warn");
+    if (status === "completed") {
+      el("x402ResultIcon").textContent = "✅";
+      el("x402ResultTitle").textContent = result.amount_paid ? `Delivered — ${result.amount_paid} paid` : "Service Delivered";
+      el("x402ResultTitle").style.color = "var(--green)";
+    } else if (status === "pending_approval") {
+      el("x402ResultIcon").textContent = "⏳";
+      el("x402ResultTitle").textContent = "Pact Submitted — Approve in CAW App";
+      el("x402ResultTitle").style.color = "var(--yellow)";
+    } else if (status === "failed" || status === "cancelled") {
+      el("x402ResultIcon").textContent = "❌";
+      el("x402ResultTitle").textContent = result.error || "Auto-pay Failed";
+      el("x402ResultTitle").style.color = "var(--red)";
+    } else {
+      el("x402ResultIcon").textContent = "ℹ️";
+      el("x402ResultTitle").textContent = `Status: ${result.status || "unknown"}`;
+      el("x402ResultTitle").style.color = "var(--muted)";
+    }
+    const selectedOption = sel.options[sel.selectedIndex];
+    const selectedServiceName = result.service || (selectedOption ? selectedOption.textContent.replace(/^\[[^\]]+\]\s*/, "").split(" — ")[0].trim() : "");
+    let detailHtml = buildDeliverySummary(result, selectedServiceName);
+    if (result.proof_error) {
+      detailHtml += `<div class="result-row"><span class="label">Proof Error</span><span class="value warn">${escapeHtml(result.proof_error)}</span></div>`;
+    }
+    el("x402ResultDetails").innerHTML = detailHtml + renderContent(content);
+    el("x402ResultPanel").classList.remove("hidden");
+    openDeliveryModal(result, selectedServiceName);
+    await loadX402Revenue();
+  } catch (err) {
+    x402Log(`❌ Auto-pay failed: ${err.message}`, "bad");
+    if (err.message.includes("pending_approval")) {
+      x402Log("⏳ Pact submitted — approve once in CAW App and try again; later buys reuse it.", "warn");
+    }
+  } finally {
+    el("x402BuyBtn").disabled = !connectedWallet || !el("x402ServiceSelect").value;
+    el("x402BuyBtnText").textContent = "🤖 Buy with CAW";
+  }
+}
+el("x402BuyBtn").addEventListener("click", x402Buy);
+el("adminServiceSelect").addEventListener("change", populateAdminEditor);
+el("adminUpdateBtn").addEventListener("click", updateAdminService);
+el("adminDeactivateBtn").addEventListener("click", () => setAdminServiceActive(false));
+el("adminReactivateBtn").addEventListener("click", () => setAdminServiceActive(true));
+el("sellerRemoveBtn").addEventListener("click", sellerRemoveSelectedService);
+el("adminTokenInput").addEventListener("keydown", (e) => { if (e.key === "Enter") loadSellerServices(); });
+
+// ── Register Service ────────────────────────────────
+let registerWallet = null;
+let sellerWalletProvider = null;
+el("toggleRegisterForm").addEventListener("click", () => {
+  el("registerForm").classList.toggle("hidden");
+});
+function regLog(msg, kind = "") {
+  el("registerLog").innerHTML = `<span style="color:var(--${kind === 'bad' ? 'red' : kind === 'good' ? 'green' : 'muted'})">${msg}</span>`;
+}
+// Seller wallet connection
+function showSellerModal() { el("sellerWalletModal").classList.remove("hidden"); el("sellerManualInput").classList.add("hidden"); el("sellerModalError").innerHTML = ""; }
+function hideSellerModal() { el("sellerWalletModal").classList.add("hidden"); }
+function setSellerError(msg) { el("sellerModalError").innerHTML = '<span style="color:var(--red)">' + msg + '</span>'; }
+function setSellerConnected(addr, provider = null) {
+  registerWallet = addr.toLowerCase();
+  sellerWalletProvider = provider;
+  el("registerWalletConnected").classList.remove("hidden");
+  el("registerWalletAddr").textContent = registerWallet;
+  el("registerWalletConnectArea").classList.add("hidden");
+  renderSellerLifecycleWallet();
+  populateAdminEditor();
+  if (el("adminServiceSelect")) loadSellerServices();
+  hideSellerModal();
+}
+
+el("openWalletModalBtn").addEventListener("click", function() {
+  showSellerModal();
+  // Each time modal opens, re-scan for EIP-6963 wallets
+  scanEIP6963Wallets();
+});
+el("closeSellerModal").addEventListener("click", hideSellerModal);
+el("sellerWalletModal").addEventListener("click", function(e) { if (e.target === el("sellerWalletModal")) hideSellerModal(); });
+
+// ── EIP-6963 Wallet Discovery ──
+var eip6963Providers = [];
+function scanEIP6963Wallets() {
+  eip6963Providers = [];
+  el("eip6963WalletList").innerHTML = '<div style="padding:10px;text-align:center;color:var(--muted);font-size:.82rem"><span class="loader"></span>Detecting wallets...</div>';
+
+  var handler = function(e) {
+    var info = e.detail.info;
+    var provider = e.detail.provider;
+    if (!info || !provider) return;
+
+    // Deduplicate by rdns
+    var exists = eip6963Providers.some(function(p) { return p.info && p.info.rdns === info.rdns; });
+    if (exists) return;
+
+    eip6963Providers.push({ info: info, provider: provider });
+    renderEIP6963Wallets();
+  };
+
+  window.addEventListener("eip6963:announceProvider", handler);
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+  // Timeout: if no wallets detected after 1.5s, show empty state
+  setTimeout(function() {
+    if (eip6963Providers.length === 0) {
+      el("eip6963WalletList").innerHTML = '<div style="padding:10px;text-align:center;color:var(--muted);font-size:.82rem">No installed wallet detected</div>';
+    }
+  }, 1500);
+}
+
+var WALLET_ICONS = {
+  "io.metamask": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 48 48\"><path d=\"M38.5 5L25.6 15.1l2.4-5.7L38.5 5z\" fill=\"#E2761B\"/><path d=\"M9.5 5l12.7 10.2-2.2-5.8L9.5 5z\" fill=\"#E2761B\"/><path d=\"M33.2 30.3l-3.4 5.2 7.3 2 2.1-7.1-6-.1z\" fill=\"#E2761B\"/><path d=\"M8.9 30.4l2 7.1 7.3-2-3.4-5.2-5.9.1z\" fill=\"#E2761B\"/><path d=\"M17.1 22l-2 3 7.2.3-.2-7.8-5 4.5z\" fill=\"#D7C1B3\"/><path d=\"M30.9 22l-5.1-4.6-.1 7.8 7.2-.3-2-3z\" fill=\"#D7C1B3\"/><path d=\"M17.4 35.5l4.4-2.1-3.8-3-6 1.6 5.4 3.5z\" fill=\"#D7C1B3\"/><path d=\"M26.2 33.4l4.4 2.1 5.4-3.5-6-1.6-3.8 3z\" fill=\"#D7C1B3\"/><path d=\"M35.5 35.3l-7.3-2 .7 2.7-.1 1.2 6.7-1.9z\" fill=\"#C0AD9F\"/><path d=\"M12.5 35.3l6.7 1.9-.1-1.2.7-2.7-7.3 2z\" fill=\"#C0AD9F\"/><path d=\"M13.8 28.5l3.9 1.4-3.7-5.5-.2 4.1z\" fill=\"#C0AD9F\"/><path d=\"M34.2 28.5l-.2-4.1-3.7 5.5 3.9-1.4z\" fill=\"#C0AD9F\"/><path d=\"M19.8 29.9l-4.9-2.3.7 3.4 4.2 1.1V29.9z\" fill=\"#C0AD9F\"/><path d=\"M33.1 27.6l-4.9 2.3v2.2l4.2-1.1.7-3.4z\" fill=\"#C0AD9F\"/><path d=\"M30.9 35.5l-4.4-2.1-.3 1.4v1.5l4.7-1.7v.9z\" fill=\"#C0AD9F\"/><path d=\"M17.4 35.5l4.7 1.7v-1.5l-.3-1.4-4.4 2.1v-.9z\" fill=\"#C0AD9F\"/><path d=\"M28.1 37.2l.3-1.7-.3-.1h-4.2l-.3.1.3 1.7-.1 1.5.1 1.4 4.2-2.9z\" fill=\"#C0AD9F\"/></svg>",
+  "app.phantom": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"32\" fill=\"#AB9FF2\"/><path d=\"M88 56c0-13.3-10.7-24-24-24s-24 10.7-24 24c0 13.3 10.7 24 24 24h24V56z\" fill=\"white\"/><circle cx=\"52\" cy=\"56\" r=\"6\" fill=\"#AB9FF2\"/><circle cx=\"68\" cy=\"56\" r=\"6\" fill=\"#AB9FF2\"/></svg>",
+  "io.rabby": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"32\" fill=\"#8697FF\"/><path d=\"M92 52c0-5-4-9-9-9H45c-5 0-9 4-9 9v14c0 18 15 33 33 33 18 0 33-15 33-33V52z\" fill=\"white\"/><path d=\"M80 58c0-3-2.5-5.5-5.5-5.5H53.5C50.5 52.5 48 55 48 58v4c0 3 2.5 5.5 5.5 5.5h21c3 0 5.5-2.5 5.5-5.5v-4z\" fill=\"#8697FF\"/></svg>",
+  "com.okex.wallet": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"32\" fill=\"#121212\"/><path d=\"M88 58c0-3-2.5-5.5-5.5-5.5H53.5C50.5 52.5 48 55 48 58v4c0 3 2.5 5.5 5.5 5.5h21c3 0 5.5-2.5 5.5-5.5v-4z\" fill=\"white\"/></svg>",
+  "com.trustwallet.app": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"32\" fill=\"#3375BB\"/><path d=\"M64 24L96 40v24c0 23.3-13.4 36.7-32 42.7C45.4 100.7 32 87.3 32 64V40l32-16z\" fill=\"white\" opacity=\"0.95\"/><path d=\"M64 92c-8.8-4.5-14.4-11.3-16.8-22.5l3-7.5 13.8 7.5-13.8-30L64 36v56z\" fill=\"#3375BB\"/></svg>",
+  "com.binance": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 48 48\"><rect width=\"48\" height=\"48\" rx=\"12\" fill=\"#F0B90B\"/><path d=\"M24 10l4.5 4.6-11.3 11.3-4.5-4.6L24 10zm0 16.8l-4.5-4.6-4.5 4.6 9 9 9-9-4.5-4.6-4.5 4.6zm-11.3-2.2l-4.5-4.6 4.5-4.6 4.5 4.6-4.5 4.6zm22.6 0l-4.5-4.6 4.5-4.6 4.5 4.6-4.5 4.6z\" fill=\"white\"/></svg>",
+  "com.coinbase.wallet": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 128 128\"><rect width=\"128\" height=\"128\" rx=\"32\" fill=\"#0052FF\"/><path d=\"M64 36c15.5 0 28 12.5 28 28s-12.5 28-28 28-28-12.5-28-28 12.5-28 28-28zm0 8c-11 0-20 9-20 20s9 20 20 20 20-9 20-20-9-20-20-20zm0 6c7.7 0 14 6.3 14 14s-6.3 14-14 14-14-6.3-14-14 6.3-14 14-14z\" fill=\"white\"/></svg>"
+};
+
+function renderEIP6963Wallets() {
+  if (eip6963Providers.length === 0) return;
+  var html = "";
+  for (var i = 0; i < eip6963Providers.length; i++) {
+    var p = eip6963Providers[i];
+    var name = p.info.name || "Wallet";
+    var rdns = p.info.rdns || "";
+    var icon = WALLET_ICONS[rdns] || "";
+    if (!icon && p.info.icon) {
+      // Use base64 SVG icon from wallet provider
+      icon = '<img src="' + p.info.icon + '" style="width:28px;height:28px;border-radius:8px" alt="' + name + '">';
+    } else if (!icon) {
+      icon = '<span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;background:rgba(255,255,255,.1);border-radius:8px">💼</span>';
+    }
+    html += '<button type="button" class="wallet-option eip6963-wallet" data-rdns="' + rdns + '" style="display:flex;align-items:center;gap:14px;width:100%;padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);color:var(--text);font:inherit;font-size:.9rem;cursor:pointer;text-align:left">' +
+      '<span style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + icon + '</span>' +
+      '<div style="flex:1"><div style="font-weight:600;font-size:.92rem">' + name + '</div></div>' +
+    '</button>';
+  }
+  el("eip6963WalletList").innerHTML = html;
+
+  // Bind click events to each EIP-6963 wallet
+  el("eip6963WalletList").querySelectorAll(".eip6963-wallet").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var rdns = btn.dataset.rdns;
+      var found = null;
+      for (var j = 0; j < eip6963Providers.length; j++) {
+        if (eip6963Providers[j].info.rdns === rdns) {
+          found = eip6963Providers[j];
+          break;
+        }
+      }
+      if (!found) {
+        setSellerError("Wallet provider not found. Please try again.");
+        return;
+      }
+      connectEIP6963Wallet(found.provider, found.info.name);
+    });
+  });
+}
+
+function connectEIP6963Wallet(provider, name) {
+  setSellerError("Connecting " + name + "...");
+  provider.request({ method: "eth_requestAccounts" }).then(function(accounts) {
+    if (!accounts || !accounts.length) {
+      setSellerError(name + " returned no account. Unlock the wallet first.");
+      return;
+    }
+    setSellerConnected(accounts[0], provider);
+  }).catch(function(err) {
+    var msg = err && err.message ? err.message : "Connection failed";
+    setSellerError(msg);
+  });
+}
+
+// WalletConnect placeholder
+el("wcOptionBtn").addEventListener("click", function() {
+  setSellerError("WalletConnect requires a Project ID. Create one at https://cloud.walletconnect.com.");
+});
+
+// Manual address
+el("manualOptionBtn").addEventListener("click", function() {
+  el("sellerManualInput").classList.remove("hidden");
+  el("sellerModalError").innerHTML = "";
+});
+el("sellerManualConfirm").addEventListener("click", function() {
+  var addr = el("sellerManualAddrInput").value.trim().toLowerCase();
+  if (!addr || !addr.startsWith("0x") || addr.length < 40) {
+    setSellerError("Invalid address. Enter a valid 0x... address.");
+    return;
+  }
+  setSellerConnected(addr, null);
+});
+el("sellerManualAddrInput").addEventListener("keydown", function(e) { if (e.key === "Enter") el("sellerManualConfirm").click(); });
+
+async function registerService() {
+  if (!registerWallet) { regLog("Please connect a seller wallet first.", "bad"); return; }
+  const name = el("regName").value.trim();
+  const description = el("regDesc").value.trim();
+  const price = el("regPrice").value.trim() || "0.00005";
+  let endpoint = el("regEndpoint").value.trim();
+  if (!endpoint) {
+    endpoint = `${window.location.origin}/api/x402`;
+    el("regEndpoint").value = endpoint;
+  }
+  if (!name) { regLog("Service name is required.", "bad"); return; }
+  if (!endpoint.startsWith("http://") && !endpoint.startsWith("https://")) {
+    regLog("Endpoint must start with http:// or https://", "bad");
+    return;
+  }
+
+  const btn = el("registerServiceBtn");
+  btn.disabled = true;
+  btn.textContent = "Registering...";
+  regLog("Submitting on-chain registration via ServiceRegistryV2...", "warn");
+  try {
+    const result = await api("/api/x402/register_v2", {
+      method: "POST",
+      headers: adminHeaders(),
+      body: JSON.stringify({
+        name,
+        description,
+        price_seth: price,
+        endpoint_uri: endpoint,
+        seller_address: registerWallet,
+        token_id: "SETH",
+        chain_id: "SETH",
+        protocol: "x402",
+      }),
+      timeout: 240000,
+    });
+    regLog(`✅ Registered service #${result.service_id || "?"} — tx ${short(result.tx_hash || "", 10, 8)}`, "good");
+    await loadSellerServices();
+    await loadX402Services();
+    await loadServices();
+    await loadStatus();
+  } catch (err) {
+    regLog(`❌ Registration failed: ${err.message}`, "bad");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📝 Register on Chain";
+  }
+}
+el("registerServiceBtn").addEventListener("click", registerService);
+
+// Disconnect seller wallet
+el("registerDisconnectWallet").addEventListener("click", function() {
+  registerWallet = null;
+  sellerWalletProvider = null;
+  el("registerWalletConnected").classList.add("hidden");
+  el("registerWalletConnectArea").classList.remove("hidden");
+  renderSellerLifecycleWallet();
+  populateAdminEditor();
+});
+restoreConnectedWallet();
+renderSellerLifecycleWallet();
+renderWalletAreas();
+loadStatus();
+loadServices();
+loadProofs();
+setInterval(loadStatus, 30000);
+</script>
+</body>
+</html>
