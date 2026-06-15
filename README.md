@@ -4,6 +4,13 @@
 
 Agent Commerce Hub is an agent-native service marketplace. Sellers publish AI services on-chain. A Buyer Agent discovers services, ranks candidates against a user request and budget, pays through an x402-style HTTP payment flow using Cobo Agentic Wallet, and records a delivery proof on Sepolia.
 
+## Demo
+
+- Live demo: https://gradually-clicker-tacking.ngrok-free.dev
+- Demo video: https://youtu.be/EiuFYwxbaDU?is=JfCJIHOXJhDgpMjg
+
+The live demo is hosted through a temporary tunnel for hackathon judging. If it is offline, run the project locally with the quick start steps below.
+
 This repository contains the standalone hackathon version: Solidity contracts, Python/FastAPI backend, CLI tools, a browser demo, and tests.
 
 ## Why this exists
@@ -135,8 +142,8 @@ These addresses and transaction hashes are public testnet data. No private keys 
 ### Install
 
 ```bash
-git clone https://github.com/adureychloe/agent-commerce-hub.git
-cd agent-commerce-hub
+git clone https://github.com/adureychloe/agent-commerce-hub-cobo-hackathon.git
+cd agent-commerce-hub-cobo-hackathon
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r web/requirements.txt web3 pytest
