@@ -13,6 +13,8 @@ The live demo is hosted through a temporary tunnel for hackathon judging. If it 
 
 This repository contains the standalone hackathon version: Solidity contracts, Python/FastAPI backend, CLI tools, a browser demo, and tests.
 
+> New to Web3, blockchain, or agent payments? Read [LEARN.md](./LEARN.md) — a beginner's crash course that walks through every concept in this project.
+
 ## Why this exists
 
 Most agent demos stop at API calls. Commerce needs a stricter loop:
