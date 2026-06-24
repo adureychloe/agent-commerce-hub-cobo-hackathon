@@ -283,7 +283,8 @@ node --check /tmp/agent-commerce-hub-inline.js
 - Event: AI x Web3 Agentic Builders Hackathon by Casual Hackathon
 - Track: Cobo Agentic Wallet
 - Direction: agent-native payments, resource procurement, and agent-to-agent commerce
-- **Post-mortem**: [POSTMORTEM.md](./POSTMORTEM.md) — comparison with the 1st place project, lessons learned, and a hackathon playbook for next time.
+- **Post-mortem**: [POSTMORTEM.md](./POSTMORTEM.md) — comparison with the 1st place Cobo track project, lessons learned, and a hackathon playbook for next time.
+- **ZAI track analysis**: [POSTMORTEM-ZAI.md](./POSTMORTEM-ZAI.md) — comparison with the 1st and 2nd place ZAI track projects and what they did differently.
 
 ## License
 
